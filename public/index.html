@@ -120,13 +120,7 @@
     <aside class="sidebar">
         <button id="btn-compose-nav" class="btn-compose">Redactar Mensaje</button>
         <ul id="folder-list" class="folder-list">
-            <!-- Folders will be loaded here -->
-            <li class="folder-item active" data-folder="INBOX">Bandeja de entrada</li>
-            <li class="folder-item" data-folder="Sent">Enviados</li>
-            <li class="folder-item" data-folder="Drafts">Borradores</li>
-            <li class="folder-item" data-folder="Trash">Papelera</li>
-            <li class="folder-item" data-folder="Spam">Spam</li>
-            <li class="folder-item" data-folder="Archive">Archivados</li>
+            <!-- Folders will be dynamically loaded here from the server -->
         </ul>
     </aside>
 
@@ -223,7 +217,7 @@
         compose: document.getElementById('view-compose')
     };
 
-    const folderItems = document.querySelectorAll('.folder-item');
+    const folderListUI = document.getElementById('folder-list');
     const lblFolderTitle = document.getElementById('current-folder-title');
     const emailList = document.getElementById('email-list');
     const listLoader = document.getElementById('list-loader');
@@ -331,6 +325,43 @@
         views[viewName].style.display = viewName === 'list' || viewName === 'detail' ? 'flex' : 'flex';
     }
 
+    async function loadFolders() {
+        try {
+            const data = await apiRequest('/api/folders');
+            if (data.success) {
+                folderListUI.innerHTML = '';
+
+                // Standard folders on top
+                const order = ['INBOX', 'Sent', 'Drafts', 'Spam', 'Trash'];
+                const sorted = data.folders.sort((a, b) => {
+                    const idxA = order.indexOf(a.id);
+                    const idxB = order.indexOf(b.id);
+                    if (idxA > -1 && idxB > -1) return idxA - idxB;
+                    if (idxA > -1) return -1;
+                    if (idxB > -1) return 1;
+                    return a.name.localeCompare(b.name);
+                });
+
+                sorted.forEach(f => {
+                    const li = document.createElement('li');
+                    li.className = `folder-item ${f.id === currentFolder ? 'active' : ''}`;
+                    li.dataset.folder = f.id;
+                    li.textContent = f.name;
+
+                    li.addEventListener('click', (e) => {
+                        document.querySelectorAll('.folder-item').forEach(item => item.classList.remove('active'));
+                        li.classList.add('active');
+                        loadMessages(f.id);
+                    });
+
+                    folderListUI.appendChild(li);
+                });
+            }
+        } catch(e) {
+            showStatus('Error cargando carpetas: ' + e.message, true);
+        }
+    }
+
     // --- Logic ---
 
     // Login
@@ -357,6 +388,7 @@
             appContainer.classList.remove('hidden');
             lblUserEmail.textContent = email;
 
+            await loadFolders();
             loadMessages('INBOX');
         } catch (err) {
             loginError.textContent = err.message;
