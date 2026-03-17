@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eficell WebMail</title>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #ecf0f1; margin: 0; padding: 0; color: #333; display: flex; flex-direction: column; min-height: 100vh;}
+        header { background-color: #2c3e50; color: #fff; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .logo { font-size: 1.5rem; font-weight: bold; }
+        .user-info { font-size: 0.9rem; }
+
+        .container { display: flex; flex: 1; max-width: 1200px; margin: 2rem auto; gap: 2rem; width: 100%; padding: 0 1rem;}
+
+        /* Sidebar */
+        .sidebar { width: 250px; background: #fff; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); height: fit-content;}
+        .btn-compose { width: 100%; padding: 12px; background: #3498db; color: #fff; border: none; border-radius: 4px; cursor: pointer; margin-bottom: 1.5rem; font-weight: bold; font-size: 1rem; transition: background 0.2s;}
+        .btn-compose:hover { background: #2980b9; }
+        .folder-list { list-style: none; padding: 0; margin: 0; }
+        .folder-item { padding: 10px 15px; cursor: pointer; border-radius: 4px; margin-bottom: 5px; color: #555; display: flex; justify-content: space-between; align-items: center;}
+        .folder-item:hover { background: #f0f3f4; color: #2c3e50; }
+        .folder-item.active { background: #e8f4f8; color: #2980b9; font-weight: bold; border-left: 4px solid #3498db; }
+
+        /* Main Content */
+        .main-content { flex: 1; background: #fff; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+
+        .toolbar { padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; background: #fafafa;}
+        .toolbar h3 { margin: 0; color: #2c3e50; }
+        .toolbar-actions button { padding: 6px 12px; background: #fff; border: 1px solid #ddd; border-radius: 4px; cursor: pointer; color: #555; }
+        .toolbar-actions button:hover { background: #eee; }
+
+        /* Email List */
+        .email-list-container { flex: 1; overflow-y: auto; }
+        .email-list { list-style: none; padding: 0; margin: 0; }
+        .email-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.1s; }
+        .email-item:hover { background: #f9f9f9; }
+        .email-item.unread { background: #fff; font-weight: bold; }
+        .email-item.read { background: #fdfdfd; color: #666; }
+        .email-content { flex: 1; margin-right: 15px; overflow: hidden; }
+        .email-subject { font-size: 1rem; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+        .email-from { font-size: 0.85rem; color: #7f8c8d; }
+        .email-preview { font-size: 0.85rem; color: #95a5a6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;}
+        .email-meta { text-align: right; min-width: 80px; }
+        .email-date { font-size: 0.8rem; color: #95a5a6; }
+
+        /* Email Detail */
+        .email-detail-container { display: none; flex-direction: column; height: 100%; }
+        .email-header { padding: 1.5rem; border-bottom: 1px solid #eee; background: #fff; }
+        .email-header h2 { margin: 0 0 10px 0; color: #2c3e50; }
+        .email-meta-info { display: flex; justify-content: space-between; font-size: 0.9rem; color: #555; }
+        .email-body { padding: 1.5rem; flex: 1; overflow-y: auto; line-height: 1.6; }
+        .attachments-container { margin: 0 1.5rem; padding: 15px 0; border-top: 1px solid #eee; }
+        .attachment-pill { display: inline-block; padding: 6px 12px; margin: 5px 10px 5px 0; background: #f1f2f6; border-radius: 20px; font-size: 0.85rem; color: #2c3e50; text-decoration: none; border: 1px solid #dcdde1; }
+        .attachment-pill:hover { background: #e0e2e8; }
+
+        /* Compose */
+        .compose-container { display: none; flex-direction: column; padding: 1.5rem; height: 100%; }
+        .compose-form { display: flex; flex-direction: column; gap: 15px; flex: 1; }
+        .compose-form input[type="text"], .compose-form input[type="email"] { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; width: 100%; box-sizing: border-box; }
+        .compose-form textarea { padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem; flex: 1; resize: none; min-height: 300px; font-family: inherit;}
+        #editor-container { height: 300px; background: #fff; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }
+        .ql-toolbar { border-top-left-radius: 4px; border-top-right-radius: 4px; background: #f8f9fa; }
+        .compose-actions { display: flex; justify-content: space-between; margin-top: 15px; }
+        .btn-send { background: #27ae60; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .btn-send:hover { background: #2ecc71; }
+        .btn-discard { background: #e74c3c; color: #fff; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .btn-discard:hover { background: #c0392b; }
+
+        /* Login Modal */
+        .login-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: #fff; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); width: 400px; text-align: center; }
+        .login-box h2 { margin-top: 0; color: #2c3e50; }
+        .login-form { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .login-form input { padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; }
+        .btn-login { background: #3498db; color: #fff; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1rem; }
+        .btn-login:hover { background: #2980b9; }
+
+        /* Status */
+        .status-msg { padding: 10px; margin: 10px 15px; border-radius: 4px; display: none; }
+        .status-error { background: #fadbd8; color: #c0392b; border: 1px solid #f5b7b1; }
+        .status-success { background: #d5f5e3; color: #27ae60; border: 1px solid #a9dfbf; }
+        .status-info { background: #ebf5fb; color: #2980b9; border: 1px solid #aed6f1; text-align: center; margin: 2rem;}
+
+        /* Utils */
+        .hidden { display: none !important; }
+        .star { cursor: pointer; color: #ccc; font-size: 1.2rem; }
+        .star.starred { color: #f1c40f; }
+    </style>
+</head>
+<body>
+
+<!-- Login Modal -->
+<div id="login-modal" class="login-overlay">
+    <div class="login-box">
+        <h2>🚀 Eficell WebMail</h2>
+        <p style="color: #7f8c8d; font-size: 0.9rem;">Conectando a mail.spacemail.com</p>
+        <form id="login-form" class="login-form">
+            <input type="email" id="login-email" placeholder="Correo Electrónico (@eficell.cl)" required>
+            <input type="password" id="login-password" placeholder="Contraseña" required>
+            <input type="text" id="login-sender-name" placeholder="Nombre a mostrar al enviar (Opcional)">
+            <button type="submit" class="btn-login" id="btn-login-submit">Iniciar Sesión</button>
+        </form>
+        <div id="login-error" style="color: #e74c3c; margin-top: 10px; font-size: 0.9rem; display: none;">Error de conexión. Verifica tus credenciales.</div>
+    </div>
+</div>
+
+<!-- Main App -->
+<header id="app-header" class="hidden">
+    <div class="logo">🚀 Eficell WebMail</div>
+    <div class="user-info">
+        <span id="current-user-email">cargando...</span> |
+        <a href="#" id="btn-logout" style="color: #ecf0f1; text-decoration: none;">Cerrar sesión</a>
+    </div>
+</header>
+
+<div id="app-container" class="container hidden">
+    <aside class="sidebar">
+        <button id="btn-compose-nav" class="btn-compose">Redactar Mensaje</button>
+        <ul id="folder-list" class="folder-list">
+            <!-- Folders will be loaded here -->
+            <li class="folder-item active" data-folder="INBOX">Bandeja de entrada</li>
+            <li class="folder-item" data-folder="Sent">Enviados</li>
+            <li class="folder-item" data-folder="Drafts">Borradores</li>
+            <li class="folder-item" data-folder="Trash">Papelera</li>
+            <li class="folder-item" data-folder="Spam">Spam</li>
+            <li class="folder-item" data-folder="Archive">Archivados</li>
+        </ul>
+    </aside>
+
+    <main class="main-content">
+        <div id="status-bar" class="status-msg"></div>
+
+        <!-- LIST VIEW -->
+        <div id="view-list" class="email-list-container">
+            <div class="toolbar">
+                <h3 id="current-folder-title">Bandeja de entrada</h3>
+                <div class="toolbar-actions">
+                    <button id="btn-refresh">🔄 Actualizar</button>
+                </div>
+            </div>
+            <div id="list-loader" class="status-info">Cargando mensajes...</div>
+            <ul id="email-list" class="email-list hidden">
+                <!-- Emails will be loaded here -->
+            </ul>
+        </div>
+
+        <!-- DETAIL VIEW -->
+        <div id="view-detail" class="email-detail-container">
+            <div class="toolbar">
+                <button id="btn-back-to-list">← Volver</button>
+                <div class="toolbar-actions">
+                    <button id="btn-detail-reply">Responder</button>
+                    <button id="btn-detail-trash" style="color: #e74c3c;">🗑️ Eliminar</button>
+                </div>
+            </div>
+            <div id="detail-loader" class="status-info">Cargando mensaje completo...</div>
+            <div id="detail-content" class="hidden" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="email-header">
+                    <h2 id="detail-subject">Asunto</h2>
+                    <div class="email-meta-info">
+                        <div>
+                            <strong>De:</strong> <span id="detail-from"></span><br>
+                            <strong>Para:</strong> <span id="detail-to"></span>
+                        </div>
+                        <div id="detail-date"></div>
+                    </div>
+                </div>
+                <div id="detail-attachments" class="attachments-container hidden">
+                    <!-- Attachments go here -->
+                </div>
+                <div class="email-body" id="detail-body">
+                    <!-- HTML body goes here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPOSE VIEW -->
+        <div id="view-compose" class="compose-container">
+            <div class="toolbar">
+                <h3>Nuevo Mensaje</h3>
+            </div>
+            <form id="compose-form" class="compose-form">
+                <input type="email" id="compose-to" placeholder="Para" required>
+                <input type="text" id="compose-cc" placeholder="Cc (opcional)">
+                <input type="text" id="compose-subject" placeholder="Asunto">
+                <input type="file" id="compose-attachments" multiple style="padding: 10px; border: 1px dashed #ccc; border-radius: 4px; background: #f9f9f9; color: #555; width: 100%; box-sizing: border-box; font-family: inherit;" title="Adjuntar archivos">
+                <div id="editor-container"></div>
+
+                <div class="compose-actions">
+                    <button type="button" id="btn-discard" class="btn-discard">Descartar</button>
+                    <button type="submit" id="btn-send" class="btn-send">Enviar Mensaje</button>
+                </div>
+            </form>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    // --- State ---
+    let currentUser = null;
+    let currentPass = null;
+    let currentSenderName = null;
+    let currentFolder = 'INBOX';
+    let currentMessageId = null;
+
+    // --- DOM Elements ---
+    const modalLogin = document.getElementById('login-modal');
+    const formLogin = document.getElementById('login-form');
+    const btnLoginSubmit = document.getElementById('btn-login-submit');
+    const loginError = document.getElementById('login-error');
+    const appHeader = document.getElementById('app-header');
+    const appContainer = document.getElementById('app-container');
+    const lblUserEmail = document.getElementById('current-user-email');
+    const btnLogout = document.getElementById('btn-logout');
+
+    const views = {
+        list: document.getElementById('view-list'),
+        detail: document.getElementById('view-detail'),
+        compose: document.getElementById('view-compose')
+    };
+
+    const folderItems = document.querySelectorAll('.folder-item');
+    const lblFolderTitle = document.getElementById('current-folder-title');
+    const emailList = document.getElementById('email-list');
+    const listLoader = document.getElementById('list-loader');
+    const btnRefresh = document.getElementById('btn-refresh');
+    const statusBar = document.getElementById('status-bar');
+
+    // Detail View Elements
+    const btnBack = document.getElementById('btn-back-to-list');
+    const detailLoader = document.getElementById('detail-loader');
+    const detailContent = document.getElementById('detail-content');
+    const detailSubject = document.getElementById('detail-subject');
+    const detailFrom = document.getElementById('detail-from');
+    const detailTo = document.getElementById('detail-to');
+    const detailDate = document.getElementById('detail-date');
+    const detailBody = document.getElementById('detail-body');
+    const detailAttachments = document.getElementById('detail-attachments');
+    const btnDetailTrash = document.getElementById('btn-detail-trash');
+    const btnDetailReply = document.getElementById('btn-detail-reply');
+
+    // Compose View Elements
+    const btnComposeNav = document.getElementById('btn-compose-nav');
+    const formCompose = document.getElementById('compose-form');
+    const composeTo = document.getElementById('compose-to');
+    const composeCc = document.getElementById('compose-cc');
+    const composeSubject = document.getElementById('compose-subject');
+    const composeAttachments = document.getElementById('compose-attachments');
+    const btnDiscard = document.getElementById('btn-discard');
+
+    // Initialize Quill editor
+    let quill;
+    document.addEventListener('DOMContentLoaded', () => {
+        quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Escribe tu mensaje aquí...',
+            modules: {
+                toolbar: [
+                    [{ 'font': [] }, { 'size': [] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'script': 'sub'}, { 'script': 'super' }],
+                    [{ 'header': '1' }, { 'header': '2' }, 'blockquote'],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }, { 'indent': '-1'}, { 'indent': '+1' }],
+                    [{ 'align': [] }],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+    });
+    const btnSend = document.getElementById('btn-send');
+
+    // --- API Helper ---
+    async function apiRequest(endpoint, method = 'GET', body = null) {
+        const headers = {
+            'x-email-user': currentUser,
+            'x-email-pass': currentPass,
+            'Content-Type': 'application/json'
+        };
+        const options = { method, headers };
+        if (body) options.body = JSON.stringify(body);
+
+        const response = await fetch(endpoint, options);
+        const data = await response.json();
+
+        if (!response.ok) throw new Error(data.error || 'Error en la petición');
+        return data;
+    }
+
+    function showStatus(msg, isError = false) {
+        statusBar.textContent = msg;
+        statusBar.className = `status-msg ${isError ? 'status-error' : 'status-success'}`;
+        statusBar.style.display = 'block';
+        setTimeout(() => statusBar.style.display = 'none', 4000);
+    }
+
+    async function downloadAttachment(folder, uid, index, filename) {
+        try {
+            showStatus(`Descargando ${filename}...`);
+            const response = await fetch(`/api/folders/${encodeURIComponent(folder)}/messages/${uid}/attachments/${index}`, {
+                method: 'GET',
+                headers: {
+                    'x-email-user': currentUser,
+                    'x-email-pass': currentPass
+                }
+            });
+            if (!response.ok) throw new Error('Error al descargar archivo');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename || 'adjunto';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showStatus('');
+        } catch(e) {
+            showStatus(`Error: ${e.message}`, true);
+        }
+    }
+
+    function switchView(viewName) {
+        Object.values(views).forEach(v => v.style.display = 'none');
+        views[viewName].style.display = viewName === 'list' || viewName === 'detail' ? 'flex' : 'flex';
+    }
+
+    // --- Logic ---
+
+    // Login
+    formLogin.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
+        const senderName = document.getElementById('login-sender-name').value;
+
+        btnLoginSubmit.textContent = 'Conectando...';
+        btnLoginSubmit.disabled = true;
+        loginError.style.display = 'none';
+
+        try {
+            currentUser = email;
+            currentPass = password;
+            currentSenderName = senderName;
+            // Test connection
+            await apiRequest('/api/test-connection', 'POST');
+
+            // Success
+            modalLogin.classList.add('hidden');
+            appHeader.classList.remove('hidden');
+            appContainer.classList.remove('hidden');
+            lblUserEmail.textContent = email;
+
+            loadMessages('INBOX');
+        } catch (err) {
+            loginError.textContent = err.message;
+            loginError.style.display = 'block';
+            currentUser = null;
+            currentPass = null;
+        } finally {
+            btnLoginSubmit.textContent = 'Iniciar Sesión';
+            btnLoginSubmit.disabled = false;
+        }
+    });
+
+    btnLogout.addEventListener('click', () => {
+        currentUser = null;
+        currentPass = null;
+        modalLogin.classList.remove('hidden');
+        appHeader.classList.add('hidden');
+        appContainer.classList.add('hidden');
+        document.getElementById('login-password').value = '';
+    });
+
+    // Navigation
+    folderItems.forEach(item => {
+        item.addEventListener('click', () => {
+            folderItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+            const folder = item.getAttribute('data-folder');
+            lblFolderTitle.textContent = item.textContent;
+            loadMessages(folder);
+        });
+    });
+
+    btnComposeNav.addEventListener('click', () => {
+        formCompose.reset();
+        switchView('compose');
+    });
+
+    btnBack.addEventListener('click', () => {
+        switchView('list');
+    });
+
+    btnRefresh.addEventListener('click', () => {
+        loadMessages(currentFolder);
+    });
+
+    btnDiscard.addEventListener('click', () => {
+        if(confirm("¿Descartar este mensaje?")) {
+            formCompose.reset();
+            if (quill) quill.setText('');
+            if (composeAttachments) composeAttachments.value = '';
+            switchView('list');
+        }
+    });
+
+    btnDetailReply.addEventListener('click', () => {
+        if (!currentEmailDetail) return;
+
+        switchView('compose');
+
+        let toEmail = currentEmailDetail.from;
+        // Parse "Name" <email> if possible
+        const match = toEmail.match(/<([^>]+)>/);
+        if (match) toEmail = match[1];
+
+        composeTo.value = toEmail;
+
+        const prevSubject = currentEmailDetail.subject || '(Sin asunto)';
+        composeSubject.value = prevSubject.startsWith('Re:') ? prevSubject : `Re: ${prevSubject}`;
+
+        const textToQuote = currentEmailDetail.html || currentEmailDetail.textAsHtml || currentEmailDetail.text || 'Sin contenido de texto.';
+        const quotedHTML = `<br/><br/><div>El ${new Date(currentEmailDetail.date).toLocaleString()}, ${currentEmailDetail.from} escribió:</div><blockquote style="margin: 0 0 0 .8ex; border-left: 1px #ccc solid; padding-left: 1ex;">${textToQuote}</blockquote>`;
+
+        quill.clipboard.dangerouslyPasteHTML(quotedHTML);
+    });
+
+    // Load Messages
+    async function loadMessages(folder) {
+        currentFolder = folder;
+        switchView('list');
+        emailList.classList.add('hidden');
+        listLoader.classList.remove('hidden');
+
+        try {
+            const data = await apiRequest(`/api/folders/${folder}/messages?limit=50`);
+            renderEmailList(data.emails);
+        } catch (err) {
+            showStatus(err.message, true);
+        } finally {
+            listLoader.classList.add('hidden');
+            emailList.classList.remove('hidden');
+        }
+    }
+
+    function renderEmailList(emails) {
+        emailList.innerHTML = '';
+        if (emails.length === 0) {
+            emailList.innerHTML = '<li class="email-item" style="justify-content: center; color: #95a5a6;">Carpeta vacía</li>';
+            return;
+        }
+
+        emails.forEach(email => {
+            const li = document.createElement('li');
+            li.className = `email-item ${email.isRead ? 'read' : 'unread'}`;
+
+            const starColor = email.isStarred ? 'starred' : '';
+            const dateStr = new Date(email.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'});
+
+            li.innerHTML = `
+                <div class="star ${starColor}" onclick="toggleStar(event, '${email.id}', ${!email.isStarred})">★</div>
+                <div class="email-content" style="margin-left: 15px;">
+                    <div class="email-subject">${escapeHtml(email.subject)} ${email.hasAttachments ? '📎' : ''}</div>
+                    <div class="email-from">${escapeHtml(email.from)}</div>
+                    <div class="email-preview">${escapeHtml(email.textSnippet || '')}</div>
+                </div>
+                <div class="email-meta">
+                    <div class="email-date">${dateStr}</div>
+                </div>
+            `;
+
+            li.addEventListener('click', (e) => {
+                if(!e.target.classList.contains('star')) {
+                    openMessage(email.id);
+                    // Mark as read locally immediately for better UX
+                    li.classList.remove('unread');
+                    li.classList.add('read');
+                }
+            });
+
+            emailList.appendChild(li);
+        });
+    }
+
+    // Open Message Detail
+    async function openMessage(uid) {
+        currentMessageId = uid;
+        switchView('detail');
+        detailContent.classList.add('hidden');
+        detailLoader.classList.remove('hidden');
+
+        try {
+            const data = await apiRequest(`/api/folders/${currentFolder}/messages/${uid}`);
+            const email = data.email;
+            currentEmailDetail = email;
+
+            detailSubject.textContent = email.subject;
+            detailFrom.textContent = email.from;
+            detailTo.textContent = email.to + (email.cc ? ` (CC: ${email.cc})` : '');
+            detailDate.textContent = new Date(email.date).toLocaleString();
+
+            // Handle Attachments
+            if (email.attachments && email.attachments.length > 0) {
+                detailAttachments.innerHTML = '<strong>Archivos Adjuntos:</strong><br/>';
+                email.attachments.forEach(att => {
+                    const downloadLink = document.createElement('a');
+                    // In a real browser context we have to append auth headers to fetch, but downloading needs a direct link or fetch+blob
+                    downloadLink.href = '#';
+                    downloadLink.className = 'attachment-pill';
+                    const kb = (att.size / 1024).toFixed(2);
+                    downloadLink.textContent = `📎 ${att.filename || 'Archivo'} (${kb} KB)`;
+                    downloadLink.onclick = async (e) => {
+                        e.preventDefault();
+                        await downloadAttachment(currentFolder, emailId, att.index, att.filename);
+                    };
+                    detailAttachments.appendChild(downloadLink);
+                });
+                detailAttachments.classList.remove('hidden');
+            } else {
+                detailAttachments.innerHTML = '';
+                detailAttachments.classList.add('hidden');
+            }
+
+            // Ensure no scripts can run by using the sandbox attribute
+            const iframe = document.createElement('iframe');
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            // Allow same origin is needed if stylesheets/images are embedded but usually we just want to render raw HTML without scripts
+            iframe.setAttribute('sandbox', ''); // Empty sandbox prevents scripts from executing
+
+            detailBody.innerHTML = '';
+            detailBody.appendChild(iframe);
+
+            // Using srcdoc to inject untrusted HTML securely
+            if ('srcdoc' in iframe) {
+                iframe.srcdoc = email.html || email.textAsHtml || email.text || '(Sin cuerpo)';
+            } else {
+                // Fallback for older browsers
+                iframe.contentWindow.document.open();
+                iframe.contentWindow.document.write(email.html || email.textAsHtml || email.text || '(Sin cuerpo)');
+                iframe.contentWindow.document.close();
+            }
+
+        } catch (err) {
+            showStatus(err.message, true);
+        } finally {
+            detailLoader.classList.add('hidden');
+            detailContent.classList.remove('hidden');
+            detailContent.style.display = 'flex';
+        }
+    }
+
+    // Actions
+    async function toggleStar(event, uid, star) {
+        event.stopPropagation();
+        const starEl = event.target;
+        // Optimistic UI update
+        if(star) starEl.classList.add('starred');
+        else starEl.classList.remove('starred');
+
+        try {
+            await apiRequest(`/api/folders/${currentFolder}/messages/${uid}/flags`, 'PATCH', { starred: star });
+        } catch(e) {
+            showStatus('Error actualizando destacado', true);
+            // Revert UI on error
+            if(star) starEl.classList.remove('starred');
+            else starEl.classList.add('starred');
+        }
+    }
+
+    btnDetailTrash.addEventListener('click', async () => {
+        if(!confirm("¿Mover este mensaje a la papelera?")) return;
+
+        try {
+            await apiRequest(`/api/folders/${currentFolder}/messages/${currentMessageId}/move`, 'POST', { destination: 'Trash' });
+            showStatus('Mensaje movido a la papelera');
+            loadMessages(currentFolder); // Returns to list
+        } catch (err) {
+            showStatus(err.message, true);
+        }
+    });
+
+    // Send Message
+    formCompose.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const to = composeTo.value;
+        const cc = composeCc.value;
+        const subject = composeSubject.value;
+
+        // Extract HTML body and Plain text body from Quill
+        const bodyHtml = quill.root.innerHTML;
+        // Basic check if editor is empty
+        if (quill.getText().trim().length === 0 && !bodyHtml.includes('<img')) {
+            showStatus("No puedes enviar un mensaje vacío", true);
+            return;
+        }
+
+        btnSend.textContent = 'Enviando...';
+        btnSend.disabled = true;
+
+        try {
+            const formData = new FormData();
+            formData.append('to', to);
+            if (cc) formData.append('cc', cc);
+            if (subject) formData.append('subject', subject);
+            formData.append('body', bodyHtml);
+            if (currentSenderName) formData.append('senderName', currentSenderName);
+
+            if (composeAttachments && composeAttachments.files.length > 0) {
+                for (let i = 0; i < composeAttachments.files.length; i++) {
+                    formData.append('attachments', composeAttachments.files[i]);
+                }
+            }
+
+            const response = await fetch('/api/emails/send', {
+                method: 'POST',
+                headers: {
+                    'x-email-user': currentUser,
+                    'x-email-pass': currentPass
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Error al enviar mensaje');
+
+            showStatus('Mensaje enviado exitosamente');
+
+            // closeCompose
+            formCompose.reset();
+            if (quill) quill.setText('');
+            if (composeAttachments) composeAttachments.value = '';
+            switchView('list');
+        } catch (err) {
+            showStatus(err.message, true);
+        } finally {
+            btnSend.textContent = 'Enviar Mensaje';
+            btnSend.disabled = false;
+        }
+    });
+
+    // Helper
+    function escapeHtml(unsafe) {
+        return (unsafe || '').toString()
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+</script>
+
+</body>
+</html>

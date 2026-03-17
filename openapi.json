@@ -1,0 +1,1388 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Spaceship.com",
+    "contact": {
+      "email": "support@spaceship.com",
+      "url": "https://www.spaceship.com/about/contact-us/"
+    },
+    "description": "# Spaceship API\n\n## Authentication\n\nSpaceship API uses a combination of API key and API secret for authentication.\n\n### API key setup\nYou can generate your API key and secret in [API Manager](https://www.spaceship.com/application/api-manager/). Use the \"New API key\" button to set up a new API key and follow the guide to get started.\nAfter the key setup has been successful, it should appear on the API Manager application page.\n\n### API key usage\nAs shown in the example below, API consumers shall pass a valid API key and a corresponding API secret in the X-API-Secret headers.\nYou do not need to encode the API key and the API secret.\n```bash\ncurl -X GET '/api/resource' \\\n-H 'X-Api-Secret: REDACTED_SECRET' \\\n-H 'X-Api-Key: REDACTED_KEY'\n```\n\n## Asynchronous Operations\n\nSome API operations may take an extended period to complete. For these long-running operations, the API returns an HTTP 202 Accepted response with a `spaceship-async-operationid` header containing a unique operation identifier.\n\n### How Async Operations Work\n\n1. **Initiate Operation**: When you make a request that requires asynchronous processing (e.g., domain registration, transfer operations), the API immediately returns a 202 response.\n\n2. **Receive Operation ID**: The response includes the `spaceship-async-operationid` header with a unique identifier for tracking the operation.\n\n3. **Poll for Status**: Use the operation ID to poll the `/v1/async-operations/{operationId}` endpoint to check the current status of your operation.\n\n4. **Operation States**: Async operations can have the following statuses:\n   - `pending` - The operation is still in progress\n   - `success` - The operation completed successfully\n   - `failed` - The operation encountered an error and could not complete\n\n### Example Workflow\n\n```bash\n# Step 1: Initiate an async operation (e.g., domain registration)\ncurl -X POST '/api/v1/domains/example.com' \\\n-H 'X-Api-Secret: YOUR_SECRET' \\\n-H 'X-Api-Key: YOUR_KEY' \\\n-H 'Content-Type: application/json' \\\n-d '{\n  \"autoRenew\": false,\n  \"years\": 1,\n  \"privacyProtection\": {\n    \"level\": \"high\",\n    \"userConsent\": true\n  },\n  \"contacts\": {\n    \"registrant\": \"CONTACT_ID\",\n    \"admin\": \"CONTACT_ID\",\n    \"tech\": \"CONTACT_ID\",\n    \"billing\": \"CONTACT_ID\"\n  }\n}'\n\n# Response: 202 Accepted\n# Headers: spaceship-async-operationid: abc123xyz\n\n# Step 2: Check operation status\ncurl -X GET '/api/v1/async-operations/abc123xyz' \\\n-H 'X-Api-Secret: YOUR_SECRET' \\\n-H 'X-Api-Key: YOUR_KEY'\n\n# Response includes:\n# - status: \"pending\" | \"success\" | \"failed\"\n# - type: Operation type (e.g., \"domains_Create\")\n# - details: Additional information about the operation\n# - createdAt: Timestamp when operation was created\n# - modifiedAt: Timestamp of last status update\n```\n\n### Permissions \n\n - <b id=\"scopes/domains:read\">domains:read</b> - Read domain information and check configuration\n- <b id=\"scopes/domains:write\">domains:write</b> - Manage domains and domain settings\n- <b id=\"scopes/domains:transfer\">domains:transfer</b> - Transfer domains in and out\n- <b id=\"scopes/domains:billing\">domains:billing</b> - Manage domains billing operations\n- <b id=\"scopes/contacts:write\">contacts:write</b> - Save contact details\n- <b id=\"scopes/contacts:read\">contacts:read</b> - Read contact details\n- <b id=\"scopes/dnsrecords:write\">dnsrecords:write</b> - Write DNS resource records\n- <b id=\"scopes/dnsrecords:read\">dnsrecords:read</b> - Read DNS resource records\n- <b id=\"scopes/asyncoperations:read\">asyncoperations:read</b> - Read async operations details\n- <b id=\"scopes/sellerhub:read\">sellerhub:read</b> - Read SellerHub Domains\n- <b id=\"scopes/sellerhub:write\">sellerhub:write</b> - Write SellerHub Domains",
+    "version": "1.0.0",
+    "x-logo": {
+      "url": "https://spaceship-cdn.com/spaceship-api-doc-assets/logo.svg"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://spaceship.dev/api",
+      "description": "The main server for the Spaceship External API",
+      "variables": {}
+    }
+  ],
+  "security": [
+    {
+      "apiKey": [
+        "REDACTED_API_KEY"
+      ],
+      "apiSecret": [
+        "REDACTED_API_SECRET"
+      ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Domains"
+    },
+    {
+      "name": "Contacts"
+    },
+    {
+      "name": "Contacts attributes"
+    },
+    {
+      "name": "DNS records"
+    },
+    {
+      "name": "SellerHub"
+    },
+    {
+      "name": "Async Operations"
+    }
+  ],
+  "paths": {
+    "/v1/async-operations/{operationId}": {
+      "get": {
+        "operationId": "getAsyncOperationDetails",
+        "summary": "Obtain async operation details",
+        "description": "Retrieves the details of an async operation, including its status and any associated details.\nThis operation is essential for tracking the progress and outcome of async operations, providing users with the necessary information to manage their requests effectively.\n\n### Required Permissions \n\n - <a href=\"#scopes/asyncoperations:read\">asyncoperations:read</a>\n\n### Rate Limits \n\n * The limit for fetching async operation details is 60 requests per user, within 300 seconds.",
+        "parameters": [
+          {
+            "name": "operationId",
+            "in": "path",
+            "required": true,
+            "description": "Unique ID of async operation",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9]+$",
+              "maxLength": 36
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request was successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AsyncOperationData"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The user's request was not authorized properly.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user's request not allowed to perform this action with the current scopes.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested object was not found.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectNotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The entity is unprocessable.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The response indicates that the rate limit for the API has been exceeded. It includes details about the rate limit, like the number of requests left and the time the rate limit window resets.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              },
+              "X-RateLimit-Limit": {
+                "required": true,
+                "description": "Request limit per hour",
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              },
+              "X-RateLimit-Remaining": {
+                "required": true,
+                "description": "The number of requests left for the time window",
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              },
+              "X-RateLimit-Reset": {
+                "required": true,
+                "description": "The UTC date/time when the current rate limit window resets",
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              },
+              "Retry-After": {
+                "required": true,
+                "description": "The number of seconds inndicating how long the client ought to wait before making a follow-up request",
+                "schema": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 1,
+                  "maximum": 2147483647
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The infrastructure encountered an error.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnexpectedError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Async Operations"
+        ],
+        "x-scopes": [
+          "asyncoperations:read"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "javascript",
+            "source": "const url = 'https://spaceship.dev/api/v1/async-operations/%7BoperationId%7D';\nconst options = {\n  method: 'GET',\n  headers: {'X-API-Key': 'REPLACE_KEY_VALUE', 'X-API-Secret': 'REPLACE_KEY_VALUE'}\n};\n\nfetch(url, options)\n  .then(res => res.json())\n  .then(json => console.log(json))\n  .catch(err => console.error(err));"
+          },
+          {
+            "lang": "php",
+            "source": "<?php\nrequire_once('vendor/autoload.php');\n\n$client = new \\GuzzleHttp\\Client();\n\n$response = $client->request('GET', 'https://spaceship.dev/api/v1/async-operations/%7BoperationId%7D', [\n  'headers' => [\n    'X-API-Key' => 'REPLACE_KEY_VALUE',\n    'X-API-Secret' => 'REPLACE_KEY_VALUE',\n  ],\n]);\n\necho $response->getBody();"
+          },
+          {
+            "lang": "python",
+            "source": "import requests\n\nurl = \"https://spaceship.dev/api/v1/async-operations/%7BoperationId%7D\"\n\nheaders = {\n    \"X-API-Key\": \"REPLACE_KEY_VALUE\",\n    \"X-API-Secret\": \"REPLACE_KEY_VALUE\"\n}\n\nresponse = requests.get(url, headers=headers)\n\nprint(response.text)"
+          },
+          {
+            "lang": "shell",
+            "source": "curl --request GET \\\n     --url https://spaceship.dev/api/v1/async-operations/%7BoperationId%7D \\\n     --header 'X-API-Key: REPLACE_KEY_VALUE' \\\n     --header 'X-API-Secret: REPLACE_KEY_VALUE'"
+          }
+        ]
+      }
+    },
+    "/v1/contacts": {
+      "put": {
+        "operationId": "saveDetails",
+        "summary": "Save contact details",
+        "description": "Save details for the contact and return the generated contact ID.\n\n> Validation rules for some parameters (such as `stateProvince` and `postalCode`) depend on the selected country. These fields may be required based on the country’s validation logic\n\n### Required Permissions \n\n - <a href=\"#scopes/contacts:write\">contacts:write</a>\n\n### Rate Limits \n\n * The limit for saving contact details is 300 requests per user, within 300 seconds.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The request was successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Contacts.SaveResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The user's request was not authorized properly.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user's request not allowed to perform this action with the current scopes.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested object was not found.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectNotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The entity is unprocessable.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The response indicates that the rate limit for the API has been exceeded. It includes details about the rate limit, like the number of requests left and the time the rate limit window resets.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The infrastructure encountered an error.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnexpectedError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Contacts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContactDetails"
+              }
+            }
+          },
+          "description": "Key-value pairs with contact details"
+        },
+        "x-scopes": [
+          "contacts:write"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "javascript",
+            "source": "const url = 'https://spaceship.dev/api/v1/contacts';\nconst options = {\n  method: 'PUT',\n  headers: {\n    'X-API-Key': 'REPLACE_KEY_VALUE',\n    'X-API-Secret': 'REPLACE_KEY_VALUE',\n    'content-type': 'application/json'\n  },\n  body: JSON.stringify({\n    firstName: 'John',\n    lastName: 'Doe',\n    organization: 'My Company',\n    email: 'admin@example.com',\n    address1: '286 King St.',\n    address2: 'string',\n    city: 'San Francisco',\n    country: 'US',\n    stateProvince: 'CA',\n    postalCode: '94107',\n    phone: '+1.123456789',\n    phoneExt: '256',\n    fax: '+1.123456789',\n    faxExt: '256',\n    taxNumber: '123456789'\n  })\n};\n\nfetch(url, options)\n  .then(res => res.json())\n  .then(json => console.log(json))\n  .catch(err => console.error(err));"
+          },
+          {
+            "lang": "php",
+            "source": "<?php\nrequire_once('vendor/autoload.php');\n\n$client = new \\GuzzleHttp\\Client();\n\n$response = $client->request('PUT', 'https://spaceship.dev/api/v1/contacts', [\n  'body' => '{\"firstName\":\"John\",\"lastName\":\"Doe\",\"organization\":\"My Company\",\"email\":\"admin@example.com\",\"address1\":\"286 King St.\",\"address2\":\"string\",\"city\":\"San Francisco\",\"country\":\"US\",\"stateProvince\":\"CA\",\"postalCode\":\"94107\",\"phone\":\"+1.123456789\",\"phoneExt\":\"256\",\"fax\":\"+1.123456789\",\"faxExt\":\"256\",\"taxNumber\":\"123456789\"}',\n  'headers' => [\n    'X-API-Key' => 'REPLACE_KEY_VALUE',\n    'X-API-Secret' => 'REPLACE_KEY_VALUE',\n    'content-type' => 'application/json',\n  ],\n]);\n\necho $response->getBody();"
+          },
+          {
+            "lang": "python",
+            "source": "import requests\n\nurl = \"https://spaceship.dev/api/v1/contacts\"\n\npayload = {\n    \"firstName\": \"John\",\n    \"lastName\": \"Doe\",\n    \"organization\": \"My Company\",\n    \"email\": \"admin@example.com\",\n    \"address1\": \"286 King St.\",\n    \"address2\": \"string\",\n    \"city\": \"San Francisco\",\n    \"country\": \"US\",\n    \"stateProvince\": \"CA\",\n    \"postalCode\": \"94107\",\n    \"phone\": \"+1.123456789\",\n    \"phoneExt\": \"256\",\n    \"fax\": \"+1.123456789\",\n    \"faxExt\": \"256\",\n    \"taxNumber\": \"123456789\"\n}\nheaders = {\n    \"X-API-Key\": \"REPLACE_KEY_VALUE\",\n    \"X-API-Secret\": \"REPLACE_KEY_VALUE\",\n    \"content-type\": \"application/json\"\n}\n\nresponse = requests.put(url, json=payload, headers=headers)\n\nprint(response.text)"
+          },
+          {
+            "lang": "shell",
+            "source": "curl --request PUT \\\n     --url https://spaceship.dev/api/v1/contacts \\\n     --header 'X-API-Key: REPLACE_KEY_VALUE' \\\n     --header 'X-API-Secret: REPLACE_KEY_VALUE' \\\n     --header 'content-type: application/json' \\\n     --data '\n{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"organization\": \"My Company\",\n  \"email\": \"admin@example.com\",\n  \"address1\": \"286 King St.\",\n  \"address2\": \"string\",\n  \"city\": \"San Francisco\",\n  \"country\": \"US\",\n  \"stateProvince\": \"CA\",\n  \"postalCode\": \"94107\",\n  \"phone\": \"+1.123456789\",\n  \"phoneExt\": \"256\",\n  \"fax\": \"+1.123456789\",\n  \"faxExt\": \"256\",\n  \"taxNumber\": \"123456789\"\n}\n'"
+          }
+        ]
+      }
+    },
+    "/v1/contacts/attributes": {
+      "put": {
+        "operationId": "saveContactAttributes",
+        "summary": "Save contact attributes",
+        "description": "Save contact attributes and return the generated contact ID.\n\n### Required Permissions \n\n - <a href=\"#scopes/contacts:write\">contacts:write</a>\n\n### Rate Limits \n\n * The limit for saving contact attribute details is 300 requests per user, within 300 seconds.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The request was successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Attributes.ContactsAttributesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The user's request was not authorized properly.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user's request not allowed to perform this action with the current scopes.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested object was not found.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectNotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The entity is unprocessable.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The response indicates that the rate limit for the API has been exceeded. It includes details about the rate limit, like the number of requests left and the time the rate limit window resets.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The infrastructure encountered an error.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnexpectedError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Contacts attributes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttributeDetails"
+              }
+            }
+          },
+          "description": "Details"
+        },
+        "x-scopes": [
+          "contacts:write"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "javascript",
+            "source": "const url = 'https://spaceship.dev/api/v1/contacts/attributes';\nconst options = {\n  method: 'PUT',\n  headers: {\n    'X-API-Key': 'REPLACE_KEY_VALUE',\n    'X-API-Secret': 'REPLACE_KEY_VALUE',\n    'content-type': 'application/json'\n  },\n  body: JSON.stringify({type: 'string'})\n};\n\nfetch(url, options)\n  .then(res => res.json())\n  .then(json => console.log(json))\n  .catch(err => console.error(err));"
+          },
+          {
+            "lang": "php",
+            "source": "<?php\nrequire_once('vendor/autoload.php');\n\n$client = new \\GuzzleHttp\\Client();\n\n$response = $client->request('PUT', 'https://spaceship.dev/api/v1/contacts/attributes', [\n  'body' => '{\"type\":\"string\"}',\n  'headers' => [\n    'X-API-Key' => 'REPLACE_KEY_VALUE',\n    'X-API-Secret' => 'REPLACE_KEY_VALUE',\n    'content-type' => 'application/json',\n  ],\n]);\n\necho $response->getBody();"
+          },
+          {
+            "lang": "python",
+            "source": "import requests\n\nurl = \"https://spaceship.dev/api/v1/contacts/attributes\"\n\npayload = { \"type\": \"string\" }\nheaders = {\n    \"X-API-Key\": \"REPLACE_KEY_VALUE\",\n    \"X-API-Secret\": \"REPLACE_KEY_VALUE\",\n    \"content-type\": \"application/json\"\n}\n\nresponse = requests.put(url, json=payload, headers=headers)\n\nprint(response.text)"
+          },
+          {
+            "lang": "shell",
+            "source": "curl --request PUT \\\n     --url https://spaceship.dev/api/v1/contacts/attributes \\\n     --header 'X-API-Key: REPLACE_KEY_VALUE' \\\n     --header 'X-API-Secret: REPLACE_KEY_VALUE' \\\n     --header 'content-type: application/json' \\\n     --data '{\"type\":\"string\"}'"
+          }
+        ]
+      }
+    },
+    "/v1/contacts/attributes/{contact}": {
+      "get": {
+        "operationId": "readAttributeDetails",
+        "summary": "Read attribute details",
+        "description": "Read attribute details by contact ID.\n\n### Required Permissions \n\n - <a href=\"#scopes/contacts:read\">contacts:read</a>\n\n### Rate Limits \n\n * The limit for listing contact attribute details is 5 requests per attribute, within 300 seconds.",
+        "parameters": [
+          {
+            "name": "contact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "1ZdMXpapqp9sle5dl8BlppTJXAzf5",
+              "minLength": 27,
+              "maxLength": 32,
+              "pattern": "[a-zA-Z0-9]+",
+              "description": "Contact ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request was successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttributeDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The user's request was not authorized properly.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user's request not allowed to perform this action with the current scopes.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested object was not found.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectNotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The entity is unprocessable.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The response indicates that the rate limit for the API has been exceeded. It includes details about the rate limit, like the number of requests left and the time the rate limit window resets.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The infrastructure encountered an error.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnexpectedError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Contacts attributes"
+        ],
+        "x-scopes": [
+          "contacts:read"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "javascript",
+            "source": "const url = 'https://spaceship.dev/api/v1/contacts/attributes/1ZdMXpapqp9sle5dl8BlppTJXAzf5';\nconst options = {\n  method: 'GET',\n  headers: {'X-API-Key': 'REPLACE_KEY_VALUE', 'X-API-Secret': 'REPLACE_KEY_VALUE'}\n};\n\nfetch(url, options)\n  .then(res => res.json())\n  .then(json => console.log(json))\n  .catch(err => console.error(err));"
+          },
+          {
+            "lang": "php",
+            "source": "<?php\nrequire_once('vendor/autoload.php');\n\n$client = new \\GuzzleHttp\\Client();\n\n$response = $client->request('GET', 'https://spaceship.dev/api/v1/contacts/attributes/1ZdMXpapqp9sle5dl8BlppTJXAzf5', [\n  'headers' => [\n    'X-API-Key' => 'REPLACE_KEY_VALUE',\n    'X-API-Secret' => 'REPLACE_KEY_VALUE',\n  ],\n]);\n\necho $response->getBody();"
+          },
+          {
+            "lang": "python",
+            "source": "import requests\n\nurl = \"https://spaceship.dev/api/v1/contacts/attributes/1ZdMXpapqp9sle5dl8BlppTJXAzf5\"\n\nheaders = {\n    \"X-API-Key\": \"REPLACE_KEY_VALUE\",\n    \"X-API-Secret\": \"REPLACE_KEY_VALUE\"\n}\n\nresponse = requests.get(url, headers=headers)\n\nprint(response.text)"
+          },
+          {
+            "lang": "shell",
+            "source": "curl --request GET \\\n     --url https://spaceship.dev/api/v1/contacts/attributes/1ZdMXpapqp9sle5dl8BlppTJXAzf5 \\\n     --header 'X-API-Key: REPLACE_KEY_VALUE' \\\n     --header 'X-API-Secret: REPLACE_KEY_VALUE'"
+          }
+        ]
+      }
+    },
+    "/v1/contacts/{contact}": {
+      "get": {
+        "operationId": "readDetails",
+        "summary": "Read contact details",
+        "description": "Read details of the contact by contact ID.\n\n### Required Permissions \n\n - <a href=\"#scopes/contacts:read\">contacts:read</a>\n\n### Rate Limits \n\n * The limit for listing contact details is 5 requests per contact, within 300 seconds.",
+        "parameters": [
+          {
+            "name": "contact",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "1ZdMXpapqp9sle5dl8BlppTJXAzf5",
+              "minLength": 27,
+              "maxLength": 32,
+              "pattern": "[a-zA-Z0-9]+",
+              "description": "Contact ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The request was successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactDetails"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request is invalid.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The user's request was not authorized properly.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user's request not allowed to perform this action with the current scopes.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested object was not found.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectNotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The entity is unprocessable.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The response indicates that the rate limit for the API has been exceeded. It includes details about the rate limit, like the number of requests left and the time the rate limit window resets.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "The infrastructure encountered an error.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnexpectedError"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Contacts"
+        ],
+        "x-scopes": [
+          "contacts:read"
+        ],
+        "x-codeSamples": [
+          {
+            "lang": "javascript",
+            "source": "const url = 'https://spaceship.dev/api/v1/contacts/1ZdMXpapqp9sle5dl8BlppTJXAzf5';\nconst options = {\n  method: 'GET',\n  headers: {'X-API-Key': 'REPLACE_KEY_VALUE', 'X-API-Secret': 'REPLACE_KEY_VALUE'}\n};\n\nfetch(url, options)\n  .then(res => res.json())\n  .then(json => console.log(json))\n  .catch(err => console.error(err));"
+          },
+          {
+            "lang": "php",
+            "source": "<?php\nrequire_once('vendor/autoload.php');\n\n$client = new \\GuzzleHttp\\Client();\n\n$response = $client->request('GET', 'https://spaceship.dev/api/v1/contacts/1ZdMXpapqp9sle5dl8BlppTJXAzf5', [\n  'headers' => [\n    'X-API-Key' => 'REPLACE_KEY_VALUE',\n    'X-API-Secret' => 'REPLACE_KEY_VALUE',\n  ],\n]);\n\necho $response->getBody();"
+          },
+          {
+            "lang": "python",
+            "source": "import requests\n\nurl = \"https://spaceship.dev/api/v1/contacts/1ZdMXpapqp9sle5dl8BlppTJXAzf5\"\n\nheaders = {\n    \"X-API-Key\": \"REPLACE_KEY_VALUE\",\n    \"X-API-Secret\": \"REPLACE_KEY_VALUE\"\n}\n\nresponse = requests.get(url, headers=headers)\n\nprint(response.text)"
+          },
+          {
+            "lang": "shell",
+            "source": "curl --request GET \\\n     --url https://spaceship.dev/api/v1/contacts/1ZdMXpapqp9sle5dl8BlppTJXAzf5 \\\n     --header 'X-API-Key: REPLACE_KEY_VALUE' \\\n     --header 'X-API-Secret: REPLACE_KEY_VALUE'"
+          }
+        ]
+      }
+    },
+    "/v1/dns/records/{domain}": {
+      "put": {
+        "operationId": "saveRecords",
+        "summary": "Save resource records",
+        "description": "Add custom DNS resource records or update TTL.\nRecords are matched using case-insensitive comparison, except for TXT records.\n\n### Required Permissions \n\n - <a href=\"#scopes/dnsrecords:write\">dnsrecords:write</a>\n\n### Rate Limits \n\n * The limit for saving resource record details is 300 requests per user, per domain, within 300 seconds.",
+        "parameters": [
+          {
+            "name": "domain",
+            "in": "path",
+            "required": true,
+            "description": "The domain whose resource records are being updated.",
+            "schema": {
+              "type": "string",
+              "example": "spaceship.com",
+              "minLength": 4,
+              "maxLength": 255,
+              "format": "domain",
+              "description": "Domain name in UTF-8 or ASCII format (U-label or A-label)"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "There is no content to send for this request, but the headers may be useful."
+          },
+          "400": {
+            "description": "The request is invalid.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorDetail"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "The user's request was not authorized properly.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The user's request not allowed to perform this action with the current scopes.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForbiddenError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The requested object was not found.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObjectNotFoundError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The entity is unprocessable.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "The response indicates that the rate limit for the API has been exceeded. It includes details about the rate limit, like the number of requests left and the time the rate limit window resets.",
+            "headers": {
+              "spaceship-error-code": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/errorCode"
+                }
+              },
+              "spaceship-operation-id": {
+                "required": true,
+                "schema": {
+                  "$ref": "#/components/schemas/operationId"
+                }
+              }
+            },
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RateLimitError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
