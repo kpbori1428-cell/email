@@ -313,36 +313,35 @@ async function loadEmails() {
     try {
         const data = await apiRequest(`/api/folders/${encodeURIComponent(currentFolder)}/messages`);
         if (data.success) {
-            emails = data.messages;
+            emails = data.emails || [];
             if (emails.length === 0) {
                 emailListUI.innerHTML = `<li class="status-info">No hay mensajes en esta carpeta.</li>`;
             } else {
                 emails.forEach(msg => {
                     const li = document.createElement('li');
-                    const isUnread = !msg.flags.includes('\\Seen');
+                    const isUnread = !msg.isRead;
+                    const isStarred = msg.isStarred;
                     li.className = `email-item ${isUnread ? 'unread' : 'read'}`;
-                    li.id = `msg-${msg.uid}`;
+                    li.id = `msg-${msg.id}`;
 
                     // Extract name vs email for clean display
                     const fromStr = escapeHtml(msg.from || '(Desconocido)');
                     const subjectStr = escapeHtml(msg.subject || '(Sin asunto)');
                     const dateStr = formatFriendlyDate(msg.date);
+                    const snippetStr = escapeHtml(msg.textSnippet || msg.preview || 'Haz clic para leer');
 
                     const avatarHtml = createAvatarHtml(msg.from);
 
-                    // Simplistic check for attachments based on generic assumption
-                    // (Realistically depends on IMAP BODYSTRUCTURE analysis in backend)
-                    const hasAttachment = msg.attachments && msg.attachments.length > 0;
-                    const attIcon = hasAttachment ? `<i class="fa-solid fa-paperclip attachment-icon"></i>` : '';
+                    const attIcon = msg.hasAttachments ? `<i class="fa-solid fa-paperclip attachment-icon"></i>` : '';
 
                     li.innerHTML = `
-                        <div class="star" onclick="toggleStar(event, ${msg.uid})">
-                            <i class="fa-regular fa-star"></i>
+                        <div class="star ${isStarred ? 'starred' : ''}" onclick="toggleStar(event, ${msg.id})">
+                            <i class="${isStarred ? 'fa-solid' : 'fa-regular'} fa-star"></i>
                         </div>
-                        <div class="email-content" onclick="openMessage(${msg.uid})">
+                        <div class="email-content" onclick="openMessage(${msg.id})">
                             ${avatarHtml}
                             <span class="email-from">${fromStr}</span>
-                            <span class="email-subject">${subjectStr} <span class="email-preview">- Haz clic para leer</span></span>
+                            <span class="email-subject">${subjectStr} <span class="email-preview" style="color: var(--text-light); font-weight: 400; margin-left: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px; display: inline-block;">- ${snippetStr}</span></span>
                         </div>
                         <div class="email-meta">
                             ${attIcon}
