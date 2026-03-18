@@ -130,8 +130,11 @@ function getAvatarColor(str) {
     for (let i = 0; i < str.length; i++) {
         hash = str.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-    return '#' + '00000'.substring(0, 6 - c.length) + c;
+    const hue = Math.abs(hash % 360);
+    // Create a beautiful gradient
+    const color1 = `hsl(${hue}, 70%, 60%)`;
+    const color2 = `hsl(${(hue + 40) % 360}, 80%, 45%)`;
+    return `linear-gradient(135deg, ${color1}, ${color2})`;
 }
 
 function getInitials(name) {
@@ -148,8 +151,8 @@ function getInitials(name) {
 function createAvatarHtml(nameStr, className = 'avatar') {
     const cleanName = escapeHtml(nameStr || 'Unknown');
     const initials = getInitials(cleanName);
-    const color = getAvatarColor(cleanName);
-    return `<div class="${className}" style="background-color: ${color};" title="${cleanName}">${initials}</div>`;
+    const bgGradient = getAvatarColor(cleanName);
+    return `<div class="${className}" style="background: ${bgGradient};" title="${cleanName}">${initials}</div>`;
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -457,25 +460,33 @@ async function openMessage(uid) {
 // Download Attachment
 async function downloadAttachment(folder, uid, partIndex, filename) {
     try {
-        const data = await apiRequest(`/api/folders/${encodeURIComponent(folder)}/messages/${uid}/attachment/${partIndex}`);
-        if (data.success) {
-            // Convert base64 to Blob
-            const byteCharacters = atob(data.content);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: data.contentType });
+        showStatus(`Descargando ${filename}...`);
 
-            // Create hidden link and trigger download
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = filename || 'adjunto';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        const authHeaders = {
+            'x-email-user': localStorage.getItem('userEmail'),
+            'x-email-pass': localStorage.getItem('userPass')
+        };
+
+        // Backend responds with raw binary data directly via res.send() and route is /attachments/:index
+        const response = await fetch(`/api/folders/${encodeURIComponent(folder)}/messages/${uid}/attachments/${partIndex}`, {
+            headers: authHeaders
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status}`);
         }
+
+        const blob = await response.blob();
+
+        // Create hidden link and trigger download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename || 'adjunto';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        showStatus('Descarga completada');
     } catch (err) {
         showStatus('Error descargando adjunto: ' + err.message, true);
     }
@@ -529,6 +540,11 @@ formLogin.addEventListener('submit', async (e) => {
         // Test connection to verify credentials
         localStorage.setItem('userEmail', email);
         localStorage.setItem('userPass', password);
+        if (senderName) {
+            localStorage.setItem('senderName', senderName);
+        } else {
+            localStorage.removeItem('senderName');
+        }
 
         const data = await apiRequest('/api/test-connection', 'POST');
         if (data.success && data.connected) {
@@ -598,8 +614,14 @@ formCompose.addEventListener('submit', async (e) => {
         formData.append('to', to);
         if (cc) formData.append('cc', cc);
         formData.append('subject', subject);
-        formData.append('html', htmlBody);
-        formData.append('text', textBody);
+        // The backend expects 'body'
+        formData.append('body', htmlBody);
+
+        // Add senderName if it exists in localStorage
+        const senderName = localStorage.getItem('senderName');
+        if (senderName) {
+            formData.append('senderName', senderName);
+        }
 
         for (let i = 0; i < files.length; i++) {
             formData.append('attachments', files[i]);
