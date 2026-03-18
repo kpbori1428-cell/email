@@ -1,0 +1,22 @@
+{
+    "branding": {
+        "appName": "Eficell WebMail",
+        "iconClass": "fa-solid fa-rocket"
+    },
+    "colors": {
+        "--primary": "#007bff",
+        "--primary-hover": "#0056b3",
+        "--secondary": "#e9ecef",
+        "--secondary-hover": "#dde2e6",
+        "--text-dark": "#202124",
+        "--text-light": "#5f6368",
+        "--bg-main": "#f4f7f6",
+        "--bg-panel": "#ffffff",
+        "--border": "#e0e0e0",
+        "--danger": "#dc3545",
+        "--danger-hover": "#bd2130",
+        "--success": "#28a745",
+        "--success-hover": "#218838",
+        "--star-active": "#f4b400"
+    }
+}
