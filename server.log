@@ -1,0 +1,6 @@
+========================================================
+PROXY REPLICADOR DE SPACEMAIL INICIADO
+URL Local: http://localhost:3000
+1. POST http://localhost:3000/api/auth/login para loguearse
+2. Entra a http://localhost:3000/es-ES/mail/ para ver la app
+========================================================

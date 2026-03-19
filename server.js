@@ -1,41 +1,53 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const cors = require('cors');
 const { chromium } = require('playwright');
 const path = require('path');
+const { createProxyMiddleware, responseInterceptor } = require('http-proxy-middleware');
 
 const app = express();
 app.use(cors());
-app.use(bodyParser.json());
-app.use(express.static('public'));
 
 // Almacén en memoria para las credenciales de sesión por usuario
+let activeSessionEmail = null;
 const sessions = {}; // { 'email': { headers: {...} } }
 
-// Helper para obtener las cabeceras vivas usando Playwright
-async function getLiveHeaders(email, password) {
-    console.log(`Iniciando sesión en Spacemail para ${email}...`);
-    const browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext();
-    const page = await context.newPage();
+// 1. Endpoint de Login Automático: Usa Playwright para loguearse y robar cookies vivas
+app.use(express.json());
+app.post('/api/auth/login', async (req, res) => {
+    const email = req.body.email || process.env.EMAIL_USER;
+    const password = req.body.password || process.env.EMAIL_PASSWORD;
 
-    let capturedHeaders = null;
-    let authFound = false;
-
-    // Interceptar la respuesta para robar las cookies y el token de la sesión recién iniciada
-    page.on('request', request => {
-        if (request.url().includes('/gateway/api/v1/mailcore/getMailboxInfo') || request.url().includes('/accountpreferencesbff/SetPreferences')) {
-            const reqHeaders = request.headers();
-            // Si tiene Cookie o el Authorization (aunque Spacemail usa cookies mayormente), las guardamos
-            if (reqHeaders.cookie && !authFound) {
-                capturedHeaders = reqHeaders;
-                authFound = true;
-                console.log(`[AUTH] Cabeceras de ${email} capturadas exitosamente!`);
-            }
-        }
-    });
+    if (!email || !password) {
+        return res.status(400).json({ error: 'Credenciales requeridas' });
+    }
 
     try {
+        console.log(`Iniciando sesión silenciosa en Spacemail para ${email}...`);
+        const browser = await chromium.launch({ headless: true });
+        const context = await browser.newContext();
+        const page = await context.newPage();
+
+        let authFound = false;
+
+        page.on('request', request => {
+            if (request.url().includes('/gateway/api/v1/mailcore/getMailboxInfo') || request.url().includes('loginStatus')) {
+                const reqHeaders = request.headers();
+                if (reqHeaders.cookie && !authFound) {
+                    sessions[email] = { headers: {} };
+                    for (const key in reqHeaders) {
+                        if (!key.startsWith(':') && key.toLowerCase() !== 'content-length' && key.toLowerCase() !== 'origin' && key.toLowerCase() !== 'referer') {
+                            sessions[email].headers[key] = reqHeaders[key];
+                        }
+                    }
+                    // Forzamos headers para engañar al backend y validar que es una peticion real
+                    sessions[email].headers['origin'] = 'https://www.spacemail.com';
+                    sessions[email].headers['referer'] = 'https://www.spacemail.com/es-ES/mail/';
+                    authFound = true;
+                    console.log(`[AUTH] ¡Cookies y Sesión capturadas exitosamente!`);
+                }
+            }
+        });
+
         await page.goto('https://www.spacemail.com/login', { waitUntil: 'networkidle', timeout: 30000 });
 
         const usernameSelector = 'input[type="text"], input[name="username"], input[name="email"]';
@@ -44,13 +56,8 @@ async function getLiveHeaders(email, password) {
 
         await page.fill(usernameSelector, email);
         await page.fill(passwordSelector, password);
+        await page.click('button[type="submit"], button:has-text("Log in")');
 
-        const btnSelector = 'button[type="submit"], button:has-text("Log in"), button:has-text("Login")';
-        await page.click(btnSelector);
-
-        console.log("Esperando inicio de sesión...");
-
-        // Esperamos a que inicie sesion (sabremos si interceptamos la API getMailboxInfo)
         for(let i=0; i<15; i++) {
             if (authFound) break;
             await page.waitForTimeout(1000);
@@ -59,83 +66,68 @@ async function getLiveHeaders(email, password) {
         await browser.close();
 
         if (authFound) {
-            // Filtrar las cabeceras para que sean seguras para axios/fetch (quitar :authority, etc)
-            const cleanHeaders = {};
-            for (const key in capturedHeaders) {
-                if (!key.startsWith(':') && key.toLowerCase() !== 'content-length' && key.toLowerCase() !== 'origin' && key.toLowerCase() !== 'referer') {
-                    cleanHeaders[key] = capturedHeaders[key];
-                }
-            }
-            // Forzar origen correcto para el CORS de Spacemail
-            cleanHeaders['content-type'] = 'application/json';
-            cleanHeaders['origin'] = 'https://www.spacemail.com';
-            cleanHeaders['referer'] = 'https://www.spacemail.com/es-ES/mail/';
-
-            return cleanHeaders;
+            activeSessionEmail = email; // Marcar sesión activa
+            res.json({ success: true, message: 'Sesión activa en el Proxy.' });
         } else {
-            throw new Error("Login falló o no se pudieron capturar las cabeceras (Credenciales inválidas?)");
+            throw new Error("No se capturó la sesión. Revisa credenciales.");
         }
 
     } catch (error) {
-        await browser.close();
-        throw error;
-    }
-}
-
-// Endpoint de Login: Obtiene y guarda los headers vivos
-app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email y contraseña requeridos' });
-    }
-
-    try {
-        const headers = await getLiveHeaders(email, password);
-        sessions[email] = { headers };
-        res.json({ success: true, message: 'Autenticado correctamente. Sesión guardada.' });
-    } catch (err) {
-        res.status(401).json({ error: err.message });
+        res.status(401).json({ error: error.message });
     }
 });
 
-// Proxy dinámico a cualquier endpoint de Spacemail
-app.post('/api/spacemail/:endpoint', async (req, res) => {
-    const { endpoint } = req.params;
-    const email = req.headers['x-email-user']; // Lo envía el frontend localStorage
+// Servimos archivos estáticos (solo está index.html)
+app.use(express.static('public'));
 
-    if (!email || !sessions[email]) {
-        return res.status(401).json({ error: 'No autorizado. Inicie sesión primero.' });
-    }
-
-    const spacemailUrl = `https://www.spacemail.com/gateway/api/v1/mailcore/${endpoint}`;
-
-    console.log(`[PROXY] Reenviando petición POST a ${spacemailUrl}`);
-
-    try {
-        const fetch = (await import('node-fetch')).default; // Usar fetch nativo (Node 18+) o node-fetch
-
-        const proxyResponse = await fetch(spacemailUrl, {
-            method: 'POST',
-            headers: sessions[email].headers,
-            body: JSON.stringify(req.body) // El payload (ej: {displayName: "..."})
-        });
-
-        const data = await proxyResponse.json().catch(() => ({}));
-
-        if (proxyResponse.ok) {
-            res.json({ success: true, data });
-        } else {
-            console.error(`Spacemail respondió con error ${proxyResponse.status}:`, data);
-            res.status(proxyResponse.status).json({ error: 'Spacemail API Error', details: data });
+// Fallback para las rutas SPA de Vue
+app.use((req, res, next) => {
+    if (req.method === 'GET') {
+        const isExcluded = req.url.startsWith('/gateway') || req.url.startsWith('/api') || req.url.startsWith('/webmail-ui') || req.url.startsWith('/static') || req.url.startsWith('/sharedstaticresources') || req.url.startsWith('/l10n');
+        if (!isExcluded) {
+            return res.sendFile(path.join(__dirname, 'public', 'index.html'));
         }
-    } catch (err) {
-        console.error("Error en proxy:", err);
-        res.status(500).json({ error: 'Fallo al comunicarse con Spacemail.' });
+    }
+    next();
+});
+
+// 2. Archivos estáticos de Spacemail que hemos clonado desde el CDN (ya no usamos Proxy para evitar bloqueos 403 de Cloudflare)
+app.use('/webmail-ui', express.static(path.join(__dirname, 'public/webmail-ui')));
+app.use('/sharedstaticresources', express.static(path.join(__dirname, 'public/sharedstaticresources')));
+app.use('/static', express.static(path.join(__dirname, 'public/static')));
+app.use('/l10n', express.static(path.join(__dirname, 'public/l10n')));
+
+// 3. Proxy para la API de Spacemail (Inyección de Autenticación)
+app.use('/gateway', createProxyMiddleware({
+    target: 'https://www.spacemail.com',
+    changeOrigin: true,
+    onProxyReq: (proxyReq, req, res) => {
+        proxyReq.setHeader('origin', 'https://www.spacemail.com');
+        proxyReq.setHeader('referer', 'https://www.spacemail.com/es-ES/mail/');
+        if (activeSessionEmail && sessions[activeSessionEmail]) {
+            const authHeaders = sessions[activeSessionEmail].headers;
+            for (const [key, value] of Object.entries(authHeaders)) {
+                proxyReq.setHeader(key, value);
+            }
+        }
+    }
+}));
+
+// 4. Fallback routing para la Single Page Application (SPA)
+app.use(function (req, res, next) {
+    if (req.method === 'GET' && !req.url.startsWith('/gateway') && !req.url.startsWith('/api') && req.accepts('html')) {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } else {
+        next();
     }
 });
 
 const PORT = 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor y Proxy de Spacemail corriendo en http://localhost:${PORT}`);
+    console.log(`========================================================`);
+    console.log(`PROXY REPLICADOR DE SPACEMAIL INICIADO`);
+    console.log(`URL Local: http://localhost:${PORT}`);
+    console.log(`1. POST http://localhost:3000/api/auth/login para loguearse`);
+    console.log(`2. Entra a http://localhost:3000/es-ES/mail/ para ver la app`);
+    console.log(`========================================================`);
 });

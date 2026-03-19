@@ -19,9 +19,9 @@
   },
   "homepage": "https://github.com/kpbori1428-cell/email#readme",
   "dependencies": {
-    "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "http-proxy-middleware": "^3.0.5",
     "playwright": "^1.58.2"
   }
 }
