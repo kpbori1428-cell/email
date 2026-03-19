@@ -56,14 +56,20 @@ const path = require('path');
     await page.click(btnSelector);
 
     console.log("Esperando renderizado completo de la aplicación (Bandeja de Entrada)...");
-    await page.waitForTimeout(15000);
+    await page.waitForTimeout(10000);
 
     console.log("Cerrando posibles modales...");
     await page.keyboard.press('Escape');
     const rejectBtn = await page.$('button:has-text("Reject all")');
     if (rejectBtn) await rejectBtn.click();
     await page.mouse.click(1350, 40);
-    await page.waitForTimeout(3000);
+    await page.waitForTimeout(2000);
+
+    console.log("Navegando a la vista de Opciones/Configuración para capturar todos los estilos...");
+    await page.goto('https://www.spacemail.com/es-ES/settings/', { waitUntil: 'networkidle' });
+
+    // Forzar scroll o clics para asegurar que los componentes lazy-loaded se descarguen
+    await page.waitForTimeout(8000);
 
     console.log("Extrayendo el SPA Shell HTML de Spacemail...");
 
@@ -80,6 +86,13 @@ const path = require('path');
 
     // Evitar que el frontend haga prefetch directo a assets de spaceship-cdn
     let modifiedHtmlContent = htmlContent.replace(/https:\/\/spaceship-cdn\.com/g, '');
+
+    // Reemplazar URLs absolutas de la API para que pasen por nuestro proxy local
+    modifiedHtmlContent = modifiedHtmlContent.replace(/https:\/\/www\.spacemail\.com/g, '');
+    modifiedHtmlContent = modifiedHtmlContent.replace(/https:\/\/www\.spaceship\.com/g, '');
+
+    // Inyectar custom CSS (Material Design 3) antes del cierre del head
+    modifiedHtmlContent = modifiedHtmlContent.replace('</head>', '    <link rel="stylesheet" href="/custom-m3.css">\n</head>');
 
     fs.writeFileSync(path.join(publicDir, 'index.html'), '<!DOCTYPE html>\n<html lang="es-ES">' + modifiedHtmlContent + '</html>');
 

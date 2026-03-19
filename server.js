@@ -92,8 +92,19 @@ app.use((req, res, next) => {
 });
 
 // 2. Archivos estáticos de Spacemail que hemos clonado desde el CDN (ya no usamos Proxy para evitar bloqueos 403 de Cloudflare)
-app.use('/webmail-ui', express.static(path.join(__dirname, 'public/webmail-ui')));
-app.use('/sharedstaticresources', express.static(path.join(__dirname, 'public/sharedstaticresources')));
+const fs = require('fs');
+const publicDir = path.join(__dirname, 'public');
+// Montamos todas las subcarpetas dentro de 'public' dinámicamente como rutas raíz
+if (fs.existsSync(publicDir)) {
+    const folders = fs.readdirSync(publicDir, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+
+    folders.forEach(folder => {
+        app.use(`/${folder}`, express.static(path.join(__dirname, `public/${folder}`)));
+    });
+}
+// Especial para static
 app.use('/static', express.static(path.join(__dirname, 'public/static')));
 app.use('/l10n', express.static(path.join(__dirname, 'public/l10n')));
 
