@@ -34,9 +34,9 @@ app.post('/api/auth/login', async (req, res) => {
         let authFound = false;
 
         page.on('request', request => {
-            if (request.url().includes('/gateway/api/v1/mailcore/getMailboxInfo') || request.url().includes('loginStatus')) {
+            if ((request.url().includes('/gateway/') || request.url().includes('loginStatus')) && request.method() !== 'OPTIONS') {
                 const reqHeaders = request.headers();
-                if (reqHeaders.cookie && !authFound) {
+                if (reqHeaders.cookie && reqHeaders.cookie.includes('spacemail_jwt') && !authFound) {
                     sessions[email] = { headers: {} };
                     for (const key in reqHeaders) {
                         if (!key.startsWith(':') && key.toLowerCase() !== 'content-length' && key.toLowerCase() !== 'origin' && key.toLowerCase() !== 'referer') {
@@ -60,16 +60,44 @@ app.post('/api/auth/login', async (req, res) => {
 
         await page.fill(usernameSelector, email);
         await page.fill(passwordSelector, password);
-        await page.click('button[type="submit"], button:has-text("Log in")');
 
-        for(let i=0; i<15; i++) {
+        const btnSelector = 'button[type="submit"], button:has-text("Log in"), button:has-text("Login")';
+        await page.click(btnSelector);
+
+        for(let i=0; i<20; i++) {
             if (authFound) break;
             await page.waitForTimeout(1000);
+
+            // Re-evaluar cookies para ver si las encontramos sin el on(request)
+            const tmpCookies = await context.cookies();
+            if (tmpCookies.some(c => c.name === 'spacemail_jwt')) {
+                authFound = true;
+                // Si la pillamos por cookies, mockear session headers manuales para el backend
+                sessions[email] = { headers: {} };
+                sessions[email].headers['cookie'] = tmpCookies.map(c => `${c.name}=${c.value}`).join('; ');
+                sessions[email].headers['origin'] = 'https://www.spacemail.com';
+                sessions[email].headers['referer'] = 'https://www.spacemail.com/es-ES/mail/';
+                console.log(`[AUTH] Cookies detectadas via polling!`);
+            }
         }
+
+        // Extraer cookies reales del navegador para enviarlas al cliente local
+        const cookies = await context.cookies();
 
         await browser.close();
 
         if (authFound) {
+            // Reenviar las cookies al navegador local para engañar al frontend SPA
+            cookies.forEach(cookie => {
+                let options = {
+                    httpOnly: cookie.httpOnly,
+                    secure: false, // En localhost no siempre es HTTPS
+                    path: cookie.path || '/'
+                };
+                // Ignorar el domain para forzar que sirvan en localhost
+                res.cookie(cookie.name, cookie.value, options);
+            });
+
             res.json({ success: true, message: 'Sesión activa en el Proxy.' });
         } else {
             throw new Error("No se capturó la sesión. Revisa credenciales.");

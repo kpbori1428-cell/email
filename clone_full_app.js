@@ -65,8 +65,8 @@ const path = require('path');
     await page.mouse.click(1350, 40);
     await page.waitForTimeout(2000);
 
-    console.log("Navegando a la vista de Opciones/Configuración para capturar todos los estilos...");
-    await page.goto('https://www.spacemail.com/es-ES/settings/', { waitUntil: 'networkidle' });
+    console.log("Navegando a la vista de Bandeja de Entrada para capturar la aplicación base...");
+    await page.goto('https://www.spacemail.com/es-ES/mail/', { waitUntil: 'networkidle' });
 
     // Forzar scroll o clics para asegurar que los componentes lazy-loaded se descarguen
     await page.waitForTimeout(8000);
