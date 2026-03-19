@@ -8,13 +8,17 @@ const app = express();
 app.use(cors());
 
 // Almacén en memoria para las credenciales de sesión por usuario
-let activeSessionEmail = null;
 const sessions = {}; // { 'email': { headers: {...} } }
+
+// Middleware para extraer el email de autenticación desde headers (usando headers locales custom)
+const getSessionEmail = (req) => {
+    return req.headers['x-email-user'] || process.env.EMAIL_USER;
+};
 
 // 1. Endpoint de Login Automático: Usa Playwright para loguearse y robar cookies vivas
 app.use(express.json());
 app.post('/api/auth/login', async (req, res) => {
-    const email = req.body.email || process.env.EMAIL_USER;
+    const email = req.body.email || getSessionEmail(req);
     const password = req.body.password || process.env.EMAIL_PASSWORD;
 
     if (!email || !password) {
@@ -66,7 +70,6 @@ app.post('/api/auth/login', async (req, res) => {
         await browser.close();
 
         if (authFound) {
-            activeSessionEmail = email; // Marcar sesión activa
             res.json({ success: true, message: 'Sesión activa en el Proxy.' });
         } else {
             throw new Error("No se capturó la sesión. Revisa credenciales.");
@@ -113,10 +116,11 @@ app.use('/gateway', createProxyMiddleware({
     target: 'https://www.spacemail.com',
     changeOrigin: true,
     onProxyReq: (proxyReq, req, res) => {
+        const sessionEmail = getSessionEmail(req);
         proxyReq.setHeader('origin', 'https://www.spacemail.com');
         proxyReq.setHeader('referer', 'https://www.spacemail.com/es-ES/mail/');
-        if (activeSessionEmail && sessions[activeSessionEmail]) {
-            const authHeaders = sessions[activeSessionEmail].headers;
+        if (sessionEmail && sessions[sessionEmail]) {
+            const authHeaders = sessions[sessionEmail].headers;
             for (const [key, value] of Object.entries(authHeaders)) {
                 proxyReq.setHeader(key, value);
             }
