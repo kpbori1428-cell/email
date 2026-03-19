@@ -1,0 +1,434 @@
+{
+  "fetchmessagebyid": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/fetchmessagebyid",
+    "method": "POST",
+    "payload": {
+      "folderFullName": "Sent",
+      "uniqueId": 4
+    }
+  },
+  "addmessagesflags": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/addmessagesflags",
+    "method": "POST",
+    "payload": {
+      "folderFullName": "Sent",
+      "flags": 1,
+      "selection": {
+        "type": "Specific",
+        "messagesIds": [
+          4
+        ]
+      }
+    }
+  },
+  "getfolderInfo": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getfolderInfo",
+    "method": "POST",
+    "payload": {
+      "folderFullName": "Trash"
+    }
+  },
+  "getpresignedurl": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getpresignedurl",
+    "method": "POST",
+    "payload": {
+      "filename": "Captura de pantalla 2026-03-06 172800.png",
+      "contentType": "image/png"
+    }
+  },
+  "sendmessage": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/sendmessage",
+    "method": "POST",
+    "payload": {
+      "from": [
+        {
+          "address": "pablonavarro@eficell.cl"
+        }
+      ],
+      "to": [
+        {
+          "address": "gabqc77s@gmail.com"
+        }
+      ],
+      "cc": [],
+      "bcc": [],
+      "subject": "hola",
+      "htmlBody": "\n <html >\n   <head>\n      <meta charset=\"utf-8\">\n      <style>\nbody,\n.spm-email {\n    font: 400 1rem / 1.5 \"GB Proxima Nova\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\";\n    overflow-y: hidden;\n    color: var(--sds-color-text-neutral-primary, #2b2b2d);\n    text-rendering: geometricprecision;\n    -webkit-font-smoothing: antialiased;\n    min-width: unset !important;\n}\n\nhtml[data-sds-mode=\"dark\"] {\n    background: none !important;\n}\n\npre {\n    word-break: initial;\n    white-space: pre-wrap;\n}\n\nblockquote,\n.spm-email blockquote {\n    margin: 16px 0 0;\n    padding: 16px 0 0;\n    color: var(--sds-color-text-neutral-primary, #2b2b2d);\n    border-top: 1px solid var(--sds-color-border-neutral-subtle, #6f6e6f);\n}\n\n.spm-quoted-email--title,\n.spm-email .spm-quoted-email--title {\n    width: auto;\n    display: inline-block;\n    margin-bottom: 16px;\n    color: var(--sds-color-text-neutral-secondary, #575860);\n    font-size: .875rem;\n    line-height: 1.25rem;\n}\n\n.spm-email .spm-signature-block {\n    margin-top: 24px;\n}\n\n.spm-signature-block p {\n    margin: 0;\n}\n\n.spm-embedded-image:not([width], [style*=\"width\"]) {\n  max-inline-size: 100%;\n  min-inline-size: 38px;\n}\n\n.spm-email hr,\nhr {\n    border: 0;\n    height: 1px;\n    background-color: var(--sds-color-border-inverted-minimal);\n}\n    \n#iframeContentContainer {\n    width: 100%; \n    padding-bottom: 18px;\n}</style>\n   </head>\n   <body class=\"spm-email\"></body>\n</html>",
+      "textBody": "",
+      "importance": "Normal",
+      "date": "Thu, 19 Mar 2026 02:36:16 GMT",
+      "isReply": false,
+      "references": [],
+      "isSecure": false,
+      "password": "",
+      "attachments": [
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/39e90f1a-e199-4924-a664-89381b7ebd9b?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJGMEQCICOahgd8vZ7BQDo9QsvA8r%2BtGd%2FmLeBI%2B%2BT31G87K5noAiAHehy%2F7Q7BeLG%2FTkI2cnbA%2FAuXwx9BWOxOwDSiRbYNECqGBQgUEAIaDDcyNzU5NDA5NTg2MiIMDEGFsVBivn1lKgnpKuMEahZ1wTtcinfn6vsU1ft%2FyZCegtQsyO3TuTIlHwCxTUexRiSHDUcN0M9NUuLvkm9A9MB04icSPuOJYgDrlToW%2BRWYNLvLIsUbgk4QMPQYhV6NBu5OOwosiEGwEayGD3c63Q9ZFOzRvleNgeMihQFfXLQepQ61z%2B0P7HNBZwltzemic9aBzI1DveI%2FZ02W7HH3x76qT1lykicVPSW2Uky0njdtahx7wu6aUHihVQU0iRG2EHrZ7ast1q794Wv5KZDbJcdu7FxTohnLAQAVv%2BiPjRm4cqHZdA%2BzRsCYS1sX%2BRJYzNRyUe42%2FhqcGS5ix%2Bp8rRDo4ZHU04ak9j9xn2Y5w60jo5ZCd%2B9PkKxq6pdtR39wWm4P%2FkIKLs6%2BXdDGa3rKtoC02j7Yb1aSQoD6y6Kp6PUVhI37lNBAXZOJ9Tz6i%2B1hIOAakk%2FrL%2F1jl%2B3p%2FiHZ9QsDbTqUWmGt04cdMnTa3jFahL1S1NnaaA69BTiEQ9JhoUYCwT5M2YlG34ykQA9DyV2Q3cj%2FGNALBWa4r4VVqqnsEyJfJn8qsZb70dPS2zzRk7AqLWDJfBBbn%2B7ZAGepSWCjXDTrHMK1OYg7X80zzJCMcKhQ9jBQWTr2vJn897sDuO168%2FpdkBvEH89zaaZ%2Bu%2BLcYYm1F9%2BTCvqM1uZxtcNGvjzGNoxRyicOtq1k4X7vvr4RrggjdqKZ1SQqu%2BlPPoIo4L5mrC0G11qLDYfQ776EAhF2GQIfAtC%2B29SHdXC1gXUd3Mild4XAsiYZ0F1560JPYx5VyD1VeaxeQI5qydoHw0Ux%2F%2BFkRIFRzUeif04YKUgwhb7tzQY6mQFlaZtvnt6gArMMw4eAHUZ15pUyviZAF%2FPB7n1iP4Y32lxTM7VKGoxpLo%2BBYAlmsQzAPNpcV%2BOZF%2FWH8hqUuOUa1LFHSgJO0MslKitzEVstb4yzsmcp8J7gtVWGlGgElETBI1iC6iaC3Sb%2Fsvc5dBXSOhzryJ%2BxeFx4RptaxZNUuGvSC27vlodAOSboNNG%2BiA%2Fx6c3UlKGKM4E%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3IM3Q7AOE%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023548Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=93570b819a1704d301c19b7de1e223675e613aba5dde56e5b8f7f0042d6c9cde"
+        },
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/7004da57-53ff-467a-88d5-b4ac60a02f40?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJHMEUCIBzmUGmu7%2BD5a3b2g9lIer4zWORv%2FkcwBGR4ipBOyV4LAiEAgWcSfNw1JzTBpV0DF%2BuGQ8vZvikaSv0TGyO7KQ3MHfUqhgUIFBACGgw3Mjc1OTQwOTU4NjIiDMsHutlq35EmDMZgPirjBBsBjDFSCxSPjb9nzylkTrPYwdtXJ8L7aHM5xvLfIWeWzCfChJvJM6Ab996UEqG%2BbbQKwfFAoLSdffZP73pfPmiarO19jmj4ioCKFQuH%2FDO67KsbYgxiR6mXzYB7%2FADE0tmZzykthTHVclOt7p8PwMnGHNBHcBfPopo7OPlc35AykdvTg6cjoigJZ93JcR0tZ2GH9s4Q3PRR4f%2B35e4foYWzdfit4W%2BJZHbpV%2BffK4yX6fP8xgAzbOIhTledHef4x3b0ns2k5oIsVLyXimFtwZqBMZNlLts1wIhTRGWJZ8QAmk7dQcbG%2BprGJI6stXXgYzMIn6%2FayskkASE5LSAq4mMoiK2nXusC13fgl2MMZ8VcUOCZGNXTn0nMrRyXCtYjvGZMNNQO3cxGVE6dLCfYH8ROjBkQo%2BVUcb8GDVsGWSHpu7QY7Fa6AvdMj86lUwB2IHG2CNyxSvIBVUJ6t3R6JWD%2FTeA9yJgu9NghFOZobYxcW6Wm4U5bUmC6gBFhu3k9Ci76yPnQU%2FmldTqxUntGFMjrwL2WdAud9t4iay06f9TzHekUoCcMJUmQXi71tLZhCWVEIEJedZDmA0N4Q9AWYraGrpk1OpDsjeCIZFiZZhFGgm68nT%2Bt6kjlH0%2BpmjkuHSzjsXq6xkqxmCLgRl6BDt1FfePOxloOENdWYzO1t7JgTv30DYc%2FGfD6E6erQmcNVqEqfIBi5eQnQWaw4OhxsXfB6%2Fq%2BJK0IH2s5c6jamLZD3cwwsoVP%2FJE4GJ5p%2FkUDUkFcAGMiqhJgvFCkMk0c1jEBbXKlCHkL15sZ%2BYoCugZCWoUsMKy%2B7c0GOpgBMxdIEEY%2BNNCcWUeJbAFzUYhwgMW9FrQv3AlvSdM8d0BJ4cPaiHTovdY%2BZi%2F0Jku5lSI84EqDX4fMQiq7FKqm2oSA6HPJWrK8qnIBEOLptoSnO6F59VBeZCHKadimcEhBzxUJWyN0jdsg6aHebh4wcqmvul1Doki%2FVbtoGOvOPMuRKHtLJbc4WuXjSkBlrCcZdvR7QBbv37Y%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3OYEKPQXF%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023614Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=3c0951a45511cb8e6e5adb52776c97448caa343dae9df55e67aeb1473e937d07"
+        },
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/558e38ab-e747-4311-a8d1-f1a61d56aabb?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJHMEUCIBzmUGmu7%2BD5a3b2g9lIer4zWORv%2FkcwBGR4ipBOyV4LAiEAgWcSfNw1JzTBpV0DF%2BuGQ8vZvikaSv0TGyO7KQ3MHfUqhgUIFBACGgw3Mjc1OTQwOTU4NjIiDMsHutlq35EmDMZgPirjBBsBjDFSCxSPjb9nzylkTrPYwdtXJ8L7aHM5xvLfIWeWzCfChJvJM6Ab996UEqG%2BbbQKwfFAoLSdffZP73pfPmiarO19jmj4ioCKFQuH%2FDO67KsbYgxiR6mXzYB7%2FADE0tmZzykthTHVclOt7p8PwMnGHNBHcBfPopo7OPlc35AykdvTg6cjoigJZ93JcR0tZ2GH9s4Q3PRR4f%2B35e4foYWzdfit4W%2BJZHbpV%2BffK4yX6fP8xgAzbOIhTledHef4x3b0ns2k5oIsVLyXimFtwZqBMZNlLts1wIhTRGWJZ8QAmk7dQcbG%2BprGJI6stXXgYzMIn6%2FayskkASE5LSAq4mMoiK2nXusC13fgl2MMZ8VcUOCZGNXTn0nMrRyXCtYjvGZMNNQO3cxGVE6dLCfYH8ROjBkQo%2BVUcb8GDVsGWSHpu7QY7Fa6AvdMj86lUwB2IHG2CNyxSvIBVUJ6t3R6JWD%2FTeA9yJgu9NghFOZobYxcW6Wm4U5bUmC6gBFhu3k9Ci76yPnQU%2FmldTqxUntGFMjrwL2WdAud9t4iay06f9TzHekUoCcMJUmQXi71tLZhCWVEIEJedZDmA0N4Q9AWYraGrpk1OpDsjeCIZFiZZhFGgm68nT%2Bt6kjlH0%2BpmjkuHSzjsXq6xkqxmCLgRl6BDt1FfePOxloOENdWYzO1t7JgTv30DYc%2FGfD6E6erQmcNVqEqfIBi5eQnQWaw4OhxsXfB6%2Fq%2BJK0IH2s5c6jamLZD3cwwsoVP%2FJE4GJ5p%2FkUDUkFcAGMiqhJgvFCkMk0c1jEBbXKlCHkL15sZ%2BYoCugZCWoUsMKy%2B7c0GOpgBMxdIEEY%2BNNCcWUeJbAFzUYhwgMW9FrQv3AlvSdM8d0BJ4cPaiHTovdY%2BZi%2F0Jku5lSI84EqDX4fMQiq7FKqm2oSA6HPJWrK8qnIBEOLptoSnO6F59VBeZCHKadimcEhBzxUJWyN0jdsg6aHebh4wcqmvul1Doki%2FVbtoGOvOPMuRKHtLJbc4WuXjSkBlrCcZdvR7QBbv37Y%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3OYEKPQXF%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023614Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=634d4ae08a6e88fa86490cf239874fc0ba47d5cb8229481efb13c880e7f0ba02"
+        },
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/4e62b2c8-a2df-4eeb-aa5b-5632fca65780?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJHMEUCIBzmUGmu7%2BD5a3b2g9lIer4zWORv%2FkcwBGR4ipBOyV4LAiEAgWcSfNw1JzTBpV0DF%2BuGQ8vZvikaSv0TGyO7KQ3MHfUqhgUIFBACGgw3Mjc1OTQwOTU4NjIiDMsHutlq35EmDMZgPirjBBsBjDFSCxSPjb9nzylkTrPYwdtXJ8L7aHM5xvLfIWeWzCfChJvJM6Ab996UEqG%2BbbQKwfFAoLSdffZP73pfPmiarO19jmj4ioCKFQuH%2FDO67KsbYgxiR6mXzYB7%2FADE0tmZzykthTHVclOt7p8PwMnGHNBHcBfPopo7OPlc35AykdvTg6cjoigJZ93JcR0tZ2GH9s4Q3PRR4f%2B35e4foYWzdfit4W%2BJZHbpV%2BffK4yX6fP8xgAzbOIhTledHef4x3b0ns2k5oIsVLyXimFtwZqBMZNlLts1wIhTRGWJZ8QAmk7dQcbG%2BprGJI6stXXgYzMIn6%2FayskkASE5LSAq4mMoiK2nXusC13fgl2MMZ8VcUOCZGNXTn0nMrRyXCtYjvGZMNNQO3cxGVE6dLCfYH8ROjBkQo%2BVUcb8GDVsGWSHpu7QY7Fa6AvdMj86lUwB2IHG2CNyxSvIBVUJ6t3R6JWD%2FTeA9yJgu9NghFOZobYxcW6Wm4U5bUmC6gBFhu3k9Ci76yPnQU%2FmldTqxUntGFMjrwL2WdAud9t4iay06f9TzHekUoCcMJUmQXi71tLZhCWVEIEJedZDmA0N4Q9AWYraGrpk1OpDsjeCIZFiZZhFGgm68nT%2Bt6kjlH0%2BpmjkuHSzjsXq6xkqxmCLgRl6BDt1FfePOxloOENdWYzO1t7JgTv30DYc%2FGfD6E6erQmcNVqEqfIBi5eQnQWaw4OhxsXfB6%2Fq%2BJK0IH2s5c6jamLZD3cwwsoVP%2FJE4GJ5p%2FkUDUkFcAGMiqhJgvFCkMk0c1jEBbXKlCHkL15sZ%2BYoCugZCWoUsMKy%2B7c0GOpgBMxdIEEY%2BNNCcWUeJbAFzUYhwgMW9FrQv3AlvSdM8d0BJ4cPaiHTovdY%2BZi%2F0Jku5lSI84EqDX4fMQiq7FKqm2oSA6HPJWrK8qnIBEOLptoSnO6F59VBeZCHKadimcEhBzxUJWyN0jdsg6aHebh4wcqmvul1Doki%2FVbtoGOvOPMuRKHtLJbc4WuXjSkBlrCcZdvR7QBbv37Y%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3OYEKPQXF%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023614Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=cd743db3aabed18fd24b5b95fe130cf4b7dc6aecf0189f6c09925f887866f7cc"
+        },
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/39856d0d-16c3-44f9-9e2b-a992736a126a?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJHMEUCIBzmUGmu7%2BD5a3b2g9lIer4zWORv%2FkcwBGR4ipBOyV4LAiEAgWcSfNw1JzTBpV0DF%2BuGQ8vZvikaSv0TGyO7KQ3MHfUqhgUIFBACGgw3Mjc1OTQwOTU4NjIiDMsHutlq35EmDMZgPirjBBsBjDFSCxSPjb9nzylkTrPYwdtXJ8L7aHM5xvLfIWeWzCfChJvJM6Ab996UEqG%2BbbQKwfFAoLSdffZP73pfPmiarO19jmj4ioCKFQuH%2FDO67KsbYgxiR6mXzYB7%2FADE0tmZzykthTHVclOt7p8PwMnGHNBHcBfPopo7OPlc35AykdvTg6cjoigJZ93JcR0tZ2GH9s4Q3PRR4f%2B35e4foYWzdfit4W%2BJZHbpV%2BffK4yX6fP8xgAzbOIhTledHef4x3b0ns2k5oIsVLyXimFtwZqBMZNlLts1wIhTRGWJZ8QAmk7dQcbG%2BprGJI6stXXgYzMIn6%2FayskkASE5LSAq4mMoiK2nXusC13fgl2MMZ8VcUOCZGNXTn0nMrRyXCtYjvGZMNNQO3cxGVE6dLCfYH8ROjBkQo%2BVUcb8GDVsGWSHpu7QY7Fa6AvdMj86lUwB2IHG2CNyxSvIBVUJ6t3R6JWD%2FTeA9yJgu9NghFOZobYxcW6Wm4U5bUmC6gBFhu3k9Ci76yPnQU%2FmldTqxUntGFMjrwL2WdAud9t4iay06f9TzHekUoCcMJUmQXi71tLZhCWVEIEJedZDmA0N4Q9AWYraGrpk1OpDsjeCIZFiZZhFGgm68nT%2Bt6kjlH0%2BpmjkuHSzjsXq6xkqxmCLgRl6BDt1FfePOxloOENdWYzO1t7JgTv30DYc%2FGfD6E6erQmcNVqEqfIBi5eQnQWaw4OhxsXfB6%2Fq%2BJK0IH2s5c6jamLZD3cwwsoVP%2FJE4GJ5p%2FkUDUkFcAGMiqhJgvFCkMk0c1jEBbXKlCHkL15sZ%2BYoCugZCWoUsMKy%2B7c0GOpgBMxdIEEY%2BNNCcWUeJbAFzUYhwgMW9FrQv3AlvSdM8d0BJ4cPaiHTovdY%2BZi%2F0Jku5lSI84EqDX4fMQiq7FKqm2oSA6HPJWrK8qnIBEOLptoSnO6F59VBeZCHKadimcEhBzxUJWyN0jdsg6aHebh4wcqmvul1Doki%2FVbtoGOvOPMuRKHtLJbc4WuXjSkBlrCcZdvR7QBbv37Y%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3OYEKPQXF%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023614Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=4e45899e59752e14d6eb2404955235af62ccd54ed9602ee84e54f655a0aa9249"
+        },
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/bb2e8e78-5f80-4ea7-b3e2-5d72ea83e1cc?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJHMEUCIBzmUGmu7%2BD5a3b2g9lIer4zWORv%2FkcwBGR4ipBOyV4LAiEAgWcSfNw1JzTBpV0DF%2BuGQ8vZvikaSv0TGyO7KQ3MHfUqhgUIFBACGgw3Mjc1OTQwOTU4NjIiDMsHutlq35EmDMZgPirjBBsBjDFSCxSPjb9nzylkTrPYwdtXJ8L7aHM5xvLfIWeWzCfChJvJM6Ab996UEqG%2BbbQKwfFAoLSdffZP73pfPmiarO19jmj4ioCKFQuH%2FDO67KsbYgxiR6mXzYB7%2FADE0tmZzykthTHVclOt7p8PwMnGHNBHcBfPopo7OPlc35AykdvTg6cjoigJZ93JcR0tZ2GH9s4Q3PRR4f%2B35e4foYWzdfit4W%2BJZHbpV%2BffK4yX6fP8xgAzbOIhTledHef4x3b0ns2k5oIsVLyXimFtwZqBMZNlLts1wIhTRGWJZ8QAmk7dQcbG%2BprGJI6stXXgYzMIn6%2FayskkASE5LSAq4mMoiK2nXusC13fgl2MMZ8VcUOCZGNXTn0nMrRyXCtYjvGZMNNQO3cxGVE6dLCfYH8ROjBkQo%2BVUcb8GDVsGWSHpu7QY7Fa6AvdMj86lUwB2IHG2CNyxSvIBVUJ6t3R6JWD%2FTeA9yJgu9NghFOZobYxcW6Wm4U5bUmC6gBFhu3k9Ci76yPnQU%2FmldTqxUntGFMjrwL2WdAud9t4iay06f9TzHekUoCcMJUmQXi71tLZhCWVEIEJedZDmA0N4Q9AWYraGrpk1OpDsjeCIZFiZZhFGgm68nT%2Bt6kjlH0%2BpmjkuHSzjsXq6xkqxmCLgRl6BDt1FfePOxloOENdWYzO1t7JgTv30DYc%2FGfD6E6erQmcNVqEqfIBi5eQnQWaw4OhxsXfB6%2Fq%2BJK0IH2s5c6jamLZD3cwwsoVP%2FJE4GJ5p%2FkUDUkFcAGMiqhJgvFCkMk0c1jEBbXKlCHkL15sZ%2BYoCugZCWoUsMKy%2B7c0GOpgBMxdIEEY%2BNNCcWUeJbAFzUYhwgMW9FrQv3AlvSdM8d0BJ4cPaiHTovdY%2BZi%2F0Jku5lSI84EqDX4fMQiq7FKqm2oSA6HPJWrK8qnIBEOLptoSnO6F59VBeZCHKadimcEhBzxUJWyN0jdsg6aHebh4wcqmvul1Doki%2FVbtoGOvOPMuRKHtLJbc4WuXjSkBlrCcZdvR7QBbv37Y%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3OYEKPQXF%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023614Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=3ea9f2ab1f398e610cb7ca39a0965f74739fdae7c66ef83c7e2234d7560306cf"
+        },
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/80139daa-f1d0-4e42-9294-a7b720e25fcd?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJHMEUCIBzmUGmu7%2BD5a3b2g9lIer4zWORv%2FkcwBGR4ipBOyV4LAiEAgWcSfNw1JzTBpV0DF%2BuGQ8vZvikaSv0TGyO7KQ3MHfUqhgUIFBACGgw3Mjc1OTQwOTU4NjIiDMsHutlq35EmDMZgPirjBBsBjDFSCxSPjb9nzylkTrPYwdtXJ8L7aHM5xvLfIWeWzCfChJvJM6Ab996UEqG%2BbbQKwfFAoLSdffZP73pfPmiarO19jmj4ioCKFQuH%2FDO67KsbYgxiR6mXzYB7%2FADE0tmZzykthTHVclOt7p8PwMnGHNBHcBfPopo7OPlc35AykdvTg6cjoigJZ93JcR0tZ2GH9s4Q3PRR4f%2B35e4foYWzdfit4W%2BJZHbpV%2BffK4yX6fP8xgAzbOIhTledHef4x3b0ns2k5oIsVLyXimFtwZqBMZNlLts1wIhTRGWJZ8QAmk7dQcbG%2BprGJI6stXXgYzMIn6%2FayskkASE5LSAq4mMoiK2nXusC13fgl2MMZ8VcUOCZGNXTn0nMrRyXCtYjvGZMNNQO3cxGVE6dLCfYH8ROjBkQo%2BVUcb8GDVsGWSHpu7QY7Fa6AvdMj86lUwB2IHG2CNyxSvIBVUJ6t3R6JWD%2FTeA9yJgu9NghFOZobYxcW6Wm4U5bUmC6gBFhu3k9Ci76yPnQU%2FmldTqxUntGFMjrwL2WdAud9t4iay06f9TzHekUoCcMJUmQXi71tLZhCWVEIEJedZDmA0N4Q9AWYraGrpk1OpDsjeCIZFiZZhFGgm68nT%2Bt6kjlH0%2BpmjkuHSzjsXq6xkqxmCLgRl6BDt1FfePOxloOENdWYzO1t7JgTv30DYc%2FGfD6E6erQmcNVqEqfIBi5eQnQWaw4OhxsXfB6%2Fq%2BJK0IH2s5c6jamLZD3cwwsoVP%2FJE4GJ5p%2FkUDUkFcAGMiqhJgvFCkMk0c1jEBbXKlCHkL15sZ%2BYoCugZCWoUsMKy%2B7c0GOpgBMxdIEEY%2BNNCcWUeJbAFzUYhwgMW9FrQv3AlvSdM8d0BJ4cPaiHTovdY%2BZi%2F0Jku5lSI84EqDX4fMQiq7FKqm2oSA6HPJWrK8qnIBEOLptoSnO6F59VBeZCHKadimcEhBzxUJWyN0jdsg6aHebh4wcqmvul1Doki%2FVbtoGOvOPMuRKHtLJbc4WuXjSkBlrCcZdvR7QBbv37Y%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3OYEKPQXF%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023615Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=424fbc5ceec8ac069f1ad18c6188e4444e9a16e4a62613c148af1228a83d1ea1"
+        },
+        {
+          "s3Url": "https://s3.us-west-2.amazonaws.com/production-email-mailcore-storage/attachments/pablonavarro%40eficell.cl/f7f0fb1f-b5f3-4a06-9a64-224a56b0dd85?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEsaCXVzLXdlc3QtMiJHMEUCIBzmUGmu7%2BD5a3b2g9lIer4zWORv%2FkcwBGR4ipBOyV4LAiEAgWcSfNw1JzTBpV0DF%2BuGQ8vZvikaSv0TGyO7KQ3MHfUqhgUIFBACGgw3Mjc1OTQwOTU4NjIiDMsHutlq35EmDMZgPirjBBsBjDFSCxSPjb9nzylkTrPYwdtXJ8L7aHM5xvLfIWeWzCfChJvJM6Ab996UEqG%2BbbQKwfFAoLSdffZP73pfPmiarO19jmj4ioCKFQuH%2FDO67KsbYgxiR6mXzYB7%2FADE0tmZzykthTHVclOt7p8PwMnGHNBHcBfPopo7OPlc35AykdvTg6cjoigJZ93JcR0tZ2GH9s4Q3PRR4f%2B35e4foYWzdfit4W%2BJZHbpV%2BffK4yX6fP8xgAzbOIhTledHef4x3b0ns2k5oIsVLyXimFtwZqBMZNlLts1wIhTRGWJZ8QAmk7dQcbG%2BprGJI6stXXgYzMIn6%2FayskkASE5LSAq4mMoiK2nXusC13fgl2MMZ8VcUOCZGNXTn0nMrRyXCtYjvGZMNNQO3cxGVE6dLCfYH8ROjBkQo%2BVUcb8GDVsGWSHpu7QY7Fa6AvdMj86lUwB2IHG2CNyxSvIBVUJ6t3R6JWD%2FTeA9yJgu9NghFOZobYxcW6Wm4U5bUmC6gBFhu3k9Ci76yPnQU%2FmldTqxUntGFMjrwL2WdAud9t4iay06f9TzHekUoCcMJUmQXi71tLZhCWVEIEJedZDmA0N4Q9AWYraGrpk1OpDsjeCIZFiZZhFGgm68nT%2Bt6kjlH0%2BpmjkuHSzjsXq6xkqxmCLgRl6BDt1FfePOxloOENdWYzO1t7JgTv30DYc%2FGfD6E6erQmcNVqEqfIBi5eQnQWaw4OhxsXfB6%2Fq%2BJK0IH2s5c6jamLZD3cwwsoVP%2FJE4GJ5p%2FkUDUkFcAGMiqhJgvFCkMk0c1jEBbXKlCHkL15sZ%2BYoCugZCWoUsMKy%2B7c0GOpgBMxdIEEY%2BNNCcWUeJbAFzUYhwgMW9FrQv3AlvSdM8d0BJ4cPaiHTovdY%2BZi%2F0Jku5lSI84EqDX4fMQiq7FKqm2oSA6HPJWrK8qnIBEOLptoSnO6F59VBeZCHKadimcEhBzxUJWyN0jdsg6aHebh4wcqmvul1Doki%2FVbtoGOvOPMuRKHtLJbc4WuXjSkBlrCcZdvR7QBbv37Y%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3OYEKPQXF%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T023614Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=ba1019e1a636b196b9b1b555126aeaf26e7fd818aa59fef1f3094e29f2d763ca"
+        }
+      ]
+    }
+  },
+  "getfolders": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getfolders",
+    "method": "POST",
+    "payload": {}
+  },
+  "getmessagesummaries": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getmessagesummaries",
+    "method": "POST",
+    "payload": {
+      "selection": {
+        "type": "FetchAll",
+        "folderName": "Sent"
+      },
+      "page": 0,
+      "count": 100
+    }
+  },
+  "getAutosuggestions": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getAutosuggestions",
+    "method": "POST",
+    "payload": {
+      "searchString": "gabqc77s@gmail.com",
+      "excludeEmails": []
+    }
+  },
+  "removemessagesflags": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/removemessagesflags",
+    "method": "POST",
+    "payload": {
+      "folderFullName": "INBOX",
+      "flags": 4,
+      "selection": {
+        "type": "Specific",
+        "messagesIds": [
+          4
+        ]
+      }
+    }
+  },
+  "movetofolder": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/movetofolder",
+    "method": "POST",
+    "payload": {
+      "folderFullName": "Sent",
+      "destinationFolderFullName": "Trash",
+      "selection": {
+        "messagesIds": [
+          4
+        ],
+        "type": "Specific"
+      }
+    }
+  },
+  "deletemessage": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/deletemessage",
+    "method": "POST",
+    "payload": {
+      "folderFullName": "Trash",
+      "selection": {
+        "messagesIds": [
+          2
+        ],
+        "type": "Specific"
+      }
+    }
+  },
+  "getforwardingsettings": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getforwardingsettings",
+    "method": "POST",
+    "payload": {}
+  },
+  "getFilterRules": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getFilterRules",
+    "method": "POST",
+    "payload": {}
+  },
+  "getExternalConnectionConfig": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getExternalConnectionConfig",
+    "method": "POST",
+    "payload": {}
+  },
+  "isExternalConnectionAllowed": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/isExternalConnectionAllowed",
+    "method": "POST",
+    "payload": {}
+  },
+  "setdisplayname": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/setdisplayname",
+    "method": "POST",
+    "payload": {
+      "displayName": "Pablo Navarros"
+    }
+  },
+  "getAvatarPresignedUrl": {
+    "url": "https://www.spacemail.com/gateway/api/v1/emailassets/getAvatarPresignedUrl",
+    "method": "POST",
+    "payload": {
+      "contentType": "image/png"
+    }
+  },
+  "setAvatar": {
+    "url": "https://www.spacemail.com/gateway/api/v1/emailassets/setAvatar",
+    "method": "POST",
+    "payload": {
+      "url": "https://s3.us-west-2.amazonaws.com/production-email-emailassets-storage/spacemail/avatars/tmp/1274b8e7b92f4ee7993b11e50a8009ac?X-Amz-Expires=1800&X-Amz-Security-Token=IQoJb3JpZ2luX2VjEEoaCXVzLXdlc3QtMiJIMEYCIQDwdw3eVY%2Bmb3fvofbph8Uu3zmI9mMaOWNAeWqq3h2l0QIhAIJjXM7vxsnf0Olin0U3A9cfYT9uV%2FcEiqlGxLMoaSaWKokFCBMQAhoMNzI3NTk0MDk1ODYyIgxspUA0Kizt4qf7AZQq5gT%2F43BMX6c8nL4Xt%2FAl3CmaVvaAbPdhfKbMg%2BLbvzUIpBPOEi8bHuLuUiO2W3E39HManGqOeZ79RTrj2UTjHZaT5Hd7WakXIOdEQ6ywsEzAjloFESusSTDgXsExsuSU9eQCHyiovjDlJ4N23wpru%2BVRmvgvlJ6k1ybsIqhR6GFwjJwLKpzD5Kz5VaYVhzJT0vZBUDB7LCkMcYrPvfSt%2BqL1gTbrYPoxOYg3FMwcqFN6yJHl7Fn%2BnWN%2Fbx47kBYM8bjOg1AOFbSchOM3UMNOnqTPNtxtrALG6DpXFzwYr5Q3krRRXlNWpcGFqjf0V6QNmCnneRUgNpRovry5w7eztucYfgrFAxN9k3VW7nNEaeW7fnJJymJh%2FAILn49L%2B8zT%2BdhnDghI3%2BdIaxGoRYK7hsBZbSk9PNb8QG%2BtFUwsu35k8GPwB7GxQwyP8mlSx%2By2ZXGCdDbdkhxTd5v3F6eqYr8v8rg0hiXlMoClthR7tDU7Ck64H5oO89E97j4fCSTYd0lyHQTh%2F7e9laDYXcGOUDDgSLHbOF%2B90CtxJLwMeP0I47iigQh5VuPqGX28Qxho86s5%2FNxSe0vAioVjq1UkyzBliCGcd9UkakvihA%2FJ3ma5ClS8bXHFECrRLSYf2yV83QdkNcfHvM57qF%2Baj1EINVxXkC05LisPa6h3EXwRRJcFbNdR%2Fq3SyysMeFI3%2Bkr4fYM6WraVAjKUlRhtL6KZhkJk9Y4IzgiwKL4X7VvmRaQEeRgQ6nNcW2ogYNAwgFqquyZPdy94IvkoxWVTiyt5D%2FMxLUvMLlnSXRXUi1OZ8zYDV%2BTg3eLa2DDOrO3NBjqXAUALX7JkCTnGXs4xbPbM8X3kh%2BUD6wsX8RIF%2BkwY1Uu1rCNV5QhxPMPYYC%2Bct%2BqSAHdT9%2BibBvpGWv8mJfRKojiJCKskgS8ugOmXoTC5MownPnaOEU1CPeqCo7e3CZFDFX0K5Q384WrJmRyJdQ09VNyPkPvKTnSv1eWvg8FT4Vku2PoMEZ8sqIjjEAWnTctBOjTWD6E1XSM%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=ASIA2SZ742T3CULIUYTZ%2F20260319%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260319T022924Z&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=32b7d431bbfa1576cbc6c49f9d5e4cbd8900668d0919ae8047d040c65a80ce09"
+    }
+  },
+  "getAvatar": {
+    "url": "https://www.spacemail.com/gateway/api/v1/emailassets/getAvatar",
+    "method": "POST",
+    "payload": {}
+  },
+  "deleteAvatar": {
+    "url": "https://www.spacemail.com/gateway/api/v1/emailassets/deleteAvatar",
+    "method": "POST",
+    "payload": {}
+  },
+  "createFilterRule": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/createFilterRule",
+    "method": "POST",
+    "payload": {
+      "id": -1,
+      "name": "hola",
+      "order": 1,
+      "isActive": true,
+      "processSubsequent": false,
+      "expression": {
+        "id": -1,
+        "ruleId": -1,
+        "parentExpression": null,
+        "operator": 1,
+        "conditions": [
+          {
+            "id": -1,
+            "expressionId": -1,
+            "mailProperty": 0,
+            "operator": 0,
+            "args": [
+              "eficell"
+            ]
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": -1,
+          "ruleId": -1,
+          "type": 0,
+          "args": [
+            "Drafts"
+          ]
+        }
+      ]
+    }
+  },
+  "updateFilterRule": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/updateFilterRule",
+    "method": "POST",
+    "payload": {
+      "id": 28006,
+      "name": "hola",
+      "order": 1,
+      "isActive": true,
+      "processSubsequent": false,
+      "expression": {
+        "id": 28005,
+        "parentExpressionId": null,
+        "childExpressions": null,
+        "conditions": [
+          {
+            "id": 42880,
+            "expressionId": 28005,
+            "mailProperty": 4,
+            "operator": 1,
+            "args": [
+              "eficell"
+            ]
+          }
+        ],
+        "operator": 1
+      },
+      "actions": [
+        {
+          "id": 28013,
+          "ruleId": 28006,
+          "type": 0,
+          "args": [
+            "Drafts"
+          ]
+        }
+      ]
+    }
+  },
+  "deleteFilterRules": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/deleteFilterRules",
+    "method": "POST",
+    "payload": [
+      {
+        "id": 28006,
+        "name": "hola",
+        "order": 1,
+        "isActive": true,
+        "processSubsequent": false,
+        "expression": {
+          "id": 28005,
+          "parentExpressionId": null,
+          "childExpressions": null,
+          "conditions": [
+            {
+              "id": 42880,
+              "expressionId": 28005,
+              "mailProperty": 4,
+              "operator": 1,
+              "args": [
+                "eficell"
+              ]
+            }
+          ],
+          "operator": 1
+        },
+        "actions": [
+          {
+            "id": 28013,
+            "type": 0,
+            "args": [
+              "Drafts"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "getautoreply": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getautoreply",
+    "method": "POST",
+    "payload": {}
+  },
+  "setautoreply": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/setautoreply",
+    "method": "POST",
+    "payload": {
+      "autoReply": {
+        "subject": "Prueba automatica",
+        "messageBody": "Mensaje automatico",
+        "isActive": false,
+        "dateStart": "2026-03-19T02:31:00.000Z",
+        "dateEnd": "2026-03-20T02:31:00.000Z"
+      }
+    }
+  },
+  "addForwardingAddress": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/addForwardingAddress",
+    "method": "POST",
+    "payload": {
+      "forwardToAddress": "gabqc77s@gmail.com"
+    }
+  },
+  "editForwardingSettings": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/editForwardingSettings",
+    "method": "POST",
+    "payload": {
+      "address": "gabqc77s@gmail.com",
+      "isEnabled": false,
+      "keepEmailCopy": false
+    }
+  },
+  "deleteForwarding": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/deleteForwarding",
+    "method": "POST",
+    "payload": {}
+  },
+  "createsignature": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/createsignature",
+    "method": "POST",
+    "payload": {
+      "title": "Eficell Firma"
+    }
+  },
+  "editsignature": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/editsignature",
+    "method": "POST",
+    "payload": {
+      "id": 589317,
+      "title": "Eficell Firma",
+      "body": "<div style=\"font-family: Arial, Helvetica, sans-serif; font-size: 10.5pt;\">Firma agregando</div>",
+      "isDefault": false,
+      "date": "2026-03-19T02:32:12.226197Z"
+    }
+  },
+  "getsignatures": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getsignatures",
+    "method": "POST",
+    "payload": {}
+  },
+  "deletesignature": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/deletesignature",
+    "method": "POST",
+    "payload": {
+      "id": 589317
+    }
+  },
+  "createfolder": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/createfolder",
+    "method": "POST",
+    "payload": {
+      "path": "INBOX/subc",
+      "name": "sub de la sub"
+    }
+  },
+  "renamefolder": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/renamefolder",
+    "method": "POST",
+    "payload": {
+      "fullName": "INBOX/subcarpeta bandeja de entrada",
+      "newFolderName": "renombrado subcarpeta"
+    }
+  },
+  "movefolder": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/movefolder",
+    "method": "POST",
+    "payload": {
+      "folderFullName": "INBOX/subc/sub de la sub",
+      "targetLocation": "Trash"
+    }
+  },
+  "getAttachment": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getAttachment",
+    "method": "POST",
+    "payload": {
+      "messageId": 4,
+      "folderFullName": "Sent",
+      "fileName": "Captura de pantalla 2026-03-06 021956.png"
+    }
+  },
+  "getAllAttachments": {
+    "url": "https://www.spacemail.com/gateway/api/v1/mailcore/getAllAttachments",
+    "method": "POST",
+    "payload": {
+      "messageId": 4,
+      "folderFullName": "Sent"
+    }
+  }
+}
