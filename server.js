@@ -26,11 +26,14 @@ app.post('/api/auth/login', async (req, res) => {
         return res.status(400).json({ error: 'Credenciales requeridas' });
     }
 
+    let browser = null;
+    let page = null;
+
     try {
-        console.log(`Iniciando sesión en Spacemail para ${email} (Apertura de navegador visible para resolver captchas/2FA)...`);
-        const browser = await chromium.launch({ headless: false }); // <-- CAMBIO A FALSE PARA DEPURACIÓN
+        console.log(`Iniciando sesión en Spacemail para ${email} en segundo plano...`);
+        browser = await chromium.launch({ headless: true }); // Volvemos a modo silencioso
         const context = await browser.newContext();
-        const page = await context.newPage();
+        page = await context.newPage();
 
         let authFound = false;
 
@@ -102,10 +105,27 @@ app.post('/api/auth/login', async (req, res) => {
 
             res.json({ success: true, message: 'Sesión activa en el Proxy.' });
         } else {
-            throw new Error("No se capturó la sesión. Revisa credenciales.");
+            throw new Error("No se capturó la sesión o se bloqueó el login.");
         }
 
     } catch (error) {
+        if (page) {
+            try {
+                // TOMAR CAPTURA DE PANTALLA EXTREMA DE EMERGENCIA AL FALLAR (Por ej. un timeout de Cloudflare)
+                const debugImagePath = path.join(__dirname, 'debug_login_error.png');
+                await page.screenshot({ path: debugImagePath, fullPage: true });
+                console.log(`[!] CRASH DETECTADO. El script explotó antes de terminar. He guardado una FOTO de los últimos segundos en: ${debugImagePath}`);
+            } catch (e) {
+                console.log(`[!] CRASH SEVERO. Ni siquiera pude tomar la foto del error:`, e.message);
+            }
+        }
+        if (browser) await browser.close();
+
+        // Imprimir el stack trace completo del error real en la terminal para ayudar al diagnóstico
+        console.error(`\n[ESTALLIDO INTERNO DE PLAYWRIGHT]:`);
+        console.error(error);
+        console.error(`--------------------------------------\n`);
+
         res.status(401).json({ error: error.message });
     }
 });
@@ -189,7 +209,14 @@ app.listen(PORT, async () => {
             if (response.ok) {
                 console.log(`✅ Auto-login exitoso. Ya puedes abrir http://localhost:${PORT}/es-ES/mail/ en tu navegador.`);
             } else {
-                console.log(`❌ Falló el auto-login: ${response.statusText}`);
+                let errorMsg = response.statusText;
+                try {
+                    const errorJson = await response.json();
+                    if (errorJson && errorJson.error) {
+                        errorMsg = errorJson.error;
+                    }
+                } catch(e) {}
+                console.log(`❌ Falló el auto-login: ${errorMsg}`);
             }
         } catch(e) {
             console.log(`⚠️ Error al intentar auto-login:`, e.message);
