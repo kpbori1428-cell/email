@@ -3,6 +3,7 @@ const cors = require('cors');
 const { chromium } = require('playwright');
 const path = require('path');
 const { createProxyMiddleware, responseInterceptor } = require('http-proxy-middleware');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
@@ -26,8 +27,8 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     try {
-        console.log(`Iniciando sesión silenciosa en Spacemail para ${email}...`);
-        const browser = await chromium.launch({ headless: true });
+        console.log(`Iniciando sesión en Spacemail para ${email} (Apertura de navegador visible para resolver captchas/2FA)...`);
+        const browser = await chromium.launch({ headless: false }); // <-- CAMBIO A FALSE PARA DEPURACIÓN
         const context = await browser.newContext();
         const page = await context.newPage();
 
@@ -64,7 +65,8 @@ app.post('/api/auth/login', async (req, res) => {
         const btnSelector = 'button[type="submit"], button:has-text("Log in"), button:has-text("Login")';
         await page.click(btnSelector);
 
-        for(let i=0; i<20; i++) {
+        // Esperamos hasta 60 segundos por si hay un Captcha o 2FA manual que completar en la ventana
+        for(let i=0; i<60; i++) {
             if (authFound) break;
             await page.waitForTimeout(1000);
 
@@ -165,12 +167,35 @@ app.use(function (req, res, next) {
     }
 });
 
-const PORT = 3000;
-app.listen(PORT, () => {
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, async () => {
     console.log(`========================================================`);
     console.log(`PROXY REPLICADOR DE SPACEMAIL INICIADO`);
     console.log(`URL Local: http://localhost:${PORT}`);
-    console.log(`1. POST http://localhost:3000/api/auth/login para loguearse`);
-    console.log(`2. Entra a http://localhost:3000/es-ES/mail/ para ver la app`);
     console.log(`========================================================`);
+
+    // Auto-login al arrancar usando las credenciales del .env
+    const email = process.env.EMAIL_USER;
+    const password = process.env.EMAIL_PASSWORD;
+    if (email && password && password !== '[TU_CONTRASEÑA]') {
+        console.log(`Ejecutando auto-login para ${email} en segundo plano...`);
+        try {
+            const fetch = require('node-fetch');
+            const response = await fetch(`http://localhost:${PORT}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+            if (response.ok) {
+                console.log(`✅ Auto-login exitoso. Ya puedes abrir http://localhost:${PORT}/es-ES/mail/ en tu navegador.`);
+            } else {
+                console.log(`❌ Falló el auto-login: ${response.statusText}`);
+            }
+        } catch(e) {
+            console.log(`⚠️ Error al intentar auto-login:`, e.message);
+        }
+    } else {
+        console.log(`⚠️ Faltan credenciales en el archivo .env. Por favor, configúralas para habilitar el login automático.`);
+        console.log(`Alternativamente puedes hacer POST a http://localhost:${PORT}/api/auth/login para iniciar sesión manualmente.`);
+    }
 });
