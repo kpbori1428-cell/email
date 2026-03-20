@@ -20,8 +20,10 @@
   "homepage": "https://github.com/kpbori1428-cell/email#readme",
   "dependencies": {
     "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "http-proxy-middleware": "^3.0.5",
+    "node-fetch": "^2.7.0",
     "playwright": "^1.58.2"
   }
 }

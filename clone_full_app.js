@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
