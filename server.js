@@ -27,8 +27,8 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     try {
-        console.log(`Iniciando sesión silenciosa en Spacemail para ${email}...`);
-        const browser = await chromium.launch({ headless: true });
+        console.log(`Iniciando sesión en Spacemail para ${email} (Apertura de navegador visible para resolver captchas/2FA)...`);
+        const browser = await chromium.launch({ headless: false }); // <-- CAMBIO A FALSE PARA DEPURACIÓN
         const context = await browser.newContext();
         const page = await context.newPage();
 
@@ -65,7 +65,8 @@ app.post('/api/auth/login', async (req, res) => {
         const btnSelector = 'button[type="submit"], button:has-text("Log in"), button:has-text("Login")';
         await page.click(btnSelector);
 
-        for(let i=0; i<20; i++) {
+        // Esperamos hasta 60 segundos por si hay un Captcha o 2FA manual que completar en la ventana
+        for(let i=0; i<60; i++) {
             if (authFound) break;
             await page.waitForTimeout(1000);
 
